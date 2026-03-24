@@ -107,12 +107,12 @@ const parrySymbols = {
 };
 
 const parryBlocks: Record<string, string[]> = {
-    prime: ['cut4','cut8'],        // tief innen – blockiert aufwärts innen und vertikale aufwärts
-    seconde: ['cut3','cut7'],      // tief außen – blockiert aufwärts außen und vertikale abwärts
-    tierce: ['cut6'],              // horizontal innen (links → rechts)
+    prime: ['cut3','cut8'],        // tief innen – blockiert aufwärts innen und vertikale aufwärts
+    seconde: ['cut4'],      // tief außen – blockiert aufwärts außen und vertikale abwärts
+    tierce: ['cut6','cut8'],              // horizontal innen (links → rechts)
     quarte: ['cut2','cut6'],       // hoch innen – blockiert diagonal oben links → unten rechts + horizontal innen
     quinte: ['cut1','cut2','cut7'],// hoch zentral / über Kopf – blockiert diagonale oben + vertikal abwärts
-    sixte: ['cut1','cut5','cut7'],        // hoch außen – blockiert diagonale oben rechts + horizontale außen
+    sixte: ['cut1','cut2','cut7'],        // hoch außen – blockiert diagonale oben rechts + horizontale außen
     septime: ['cut4','cut5'],      // tief innen außen – blockiert aufwärts innen + horizontal außen
     longTierce: ['cut1','cut2','cut3','cut4','cut5','cut6','cut7','cut8'],
     longSickle: ['cut1','cut2','cut3','cut4','cut5','cut6','cut7','cut8'],
