@@ -1,16 +1,39 @@
-# React + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Currently, two official plugins are available:
+# Fencing Sequencer
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+This is an early prototype web tool for experimenting with HEMA fencing sequences. It is a fast, experimental implementation and far from finished — more a proof of concept than a polished app.
 
-## React Compiler
+Live demo: [https://maxrebhorn.github.io/fencing-sequencer/](https://maxrebhorn.github.io/fencing-sequencer/)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## What It Is
 
-## Expanding the ESLint configuration
+The Fencing Sequencer allows you to:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+* visualize sequences of cuts and parries using simple icons,
+* explore suggested counter-actions based on enemy moves and your own parries,
+* see recommendations for attacks where your opponent is slowest to defend and you can act quickest.
+
+The current goal is to support fencing enthusiasts in thinking through sequences and counters, not to provide a full training tool.
+
+## Current State
+
+* **Prototype only:** The interface is minimal and functional, not polished.
+* **Icon-based visualization:** SVGs currently represent moves with simple icons; no drag-and-drop editing.
+* **Partial algorithm:** Suggestions for optimal actions are semi-functional; based on your parry choice and enemy attack.
+* **Experimental:** Many features are missing, and UX is basic.
+
+## Intended Audience
+
+This tool is primarily for HEMA fencing enthusiasts interested in exploring combinations and counter-strategies. It’s not aimed at developers or production use.
+
+## How It Works (Simplified)
+
+* **Sequence visualization:** Icons represent cuts, parries, and actions.
+* **Counter-suggestion logic:** The algorithm identifies possible attacks where the opponent is slowest to respond, based on your parry.
+* **Interactive exploration:** Users can experiment with different sequences and see recommended moves.
+
+## Notes
+
+This project was implemented quickly to test ideas. Contributions or feedback from fencing practitioners are welcome, especially on refining the action-suggestion logic and improving clarity of move representation.
+
