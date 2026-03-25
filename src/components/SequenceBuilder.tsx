@@ -9,6 +9,8 @@ import { SequenceStepsList } from './elements/SequenceStepsList';
 import { MoveGrid } from './elements/MoveGrid';
 import { ActionButtons } from './elements/ActionButtons';
 import { SimulationPlaceholder } from './elements/SimulationPlaceholder';
+import { useTranslation } from "react-i18next";
+
 
 // This type should ideally be exported from a shared types file.
 // For now, we define it here and will use it in the steps state.
@@ -24,7 +26,7 @@ interface Props {
 
 export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
     const { moves } = useMoveStore();
-
+    const { t } = useTranslation();
     const [steps, setSteps] = useState<SequenceStep[]>(() => {
         const saved = localStorage.getItem('sequence');
         if (saved) {
@@ -225,7 +227,7 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                 <ArrowLeft size={24} />
             </button>
 
-            <h1 className="text-2xl font-bold mb-6 neon-text">Sequenz bauen</h1>
+            <h1 className="text-2xl font-bold mb-6 neon-text">{t('sequence.title')}</h1>
 
             <SimulationPlaceholder />
 

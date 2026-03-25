@@ -1,14 +1,16 @@
 import React from 'react';
 import { Move } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
     move: Move;
     suggestionRank: number | null;
     onClick: (move: Move) => void;
-    compact?: boolean; // new
+    compact?: boolean;
 }
 
 export const MoveButton: React.FC<Props> = ({ move, suggestionRank, onClick, compact = false }) => {
+    const { t } = useTranslation();
     const isSuggested = suggestionRank !== null;
 
     let borderClass = 'border-gray-700';
@@ -17,24 +19,24 @@ export const MoveButton: React.FC<Props> = ({ move, suggestionRank, onClick, com
     let badge = null;
     let tooltipText = '';
 
-    if (isSuggested && !compact) { // don't show badges in compact mode
+    if (isSuggested && !compact) {
         if (suggestionRank === 0) {
             borderClass = 'border-yellow-400';
             bgClass = 'bg-yellow-900/50';
             shadowClass = 'shadow-yellow-500/50';
-            badge = <div className="text-[10px] text-center text-yellow-300 mt-1">⭐ Beste Wahl</div>;
-            tooltipText = 'Schnellste / einfachste Aktion';
+            badge = <div className="text-[10px] text-center text-yellow-300 mt-1">{t('move.bestChoice')}</div>;
+            tooltipText = t('move.tooltipBest');
         } else if (suggestionRank === 1) {
             borderClass = 'border-green-500';
             bgClass = 'bg-green-900/30';
             shadowClass = 'shadow-green-500/30';
-            badge = <div className="text-[10px] text-center text-green-400 mt-1">✓ Empfohlen</div>;
-            tooltipText = 'Gute Alternative';
+            badge = <div className="text-[10px] text-center text-green-400 mt-1">{t('move.recommended')}</div>;
+            tooltipText = t('move.tooltipRecommended');
         } else {
             borderClass = 'border-green-500/50';
             bgClass = 'bg-green-900/20';
-            badge = <div className="text-[10px] text-center text-green-400/70 mt-1">Möglichkeit</div>;
-            tooltipText = 'Möglich, aber nicht optimal';
+            badge = <div className="text-[10px] text-center text-green-400/70 mt-1">{t('move.possibility')}</div>;
+            tooltipText = t('move.tooltipPossible');
         }
     }
 

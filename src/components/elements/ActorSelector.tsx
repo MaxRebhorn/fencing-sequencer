@@ -1,5 +1,6 @@
 import React from 'react';
 import { User, Bot } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
     selectedActor: 'player' | 'opponent';
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export const ActorSelector: React.FC<Props> = ({ selectedActor, onSelectActor }) => {
+    const { t } = useTranslation();
     return (
         <div className="flex justify-center my-6">
             <div className="bg-gray-800 rounded-full p-1 flex items-center shadow-lg">
@@ -19,7 +21,7 @@ export const ActorSelector: React.FC<Props> = ({ selectedActor, onSelectActor })
                     }`}
                 >
                     <User size={18} />
-                    <span>Spieler-Aktion</span>
+                    <span>{t('actor.player')}</span>
                 </button>
                 <button
                     onClick={() => onSelectActor('opponent')}
@@ -30,7 +32,7 @@ export const ActorSelector: React.FC<Props> = ({ selectedActor, onSelectActor })
                     }`}
                 >
                     <Bot size={18} />
-                    <span>Gegner-Aktion</span>
+                    <span>{t('actor.opponent')}</span>
                 </button>
             </div>
         </div>

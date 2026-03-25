@@ -1,0 +1,71 @@
+{
+  "common": {
+    "save": "Speichern",
+    "simulate": "Simulieren",
+    "back": "Zurück",
+    "cancel": "Abbrechen",
+    "add": "Hinzufügen",
+    "update": "Aktualisieren",
+    "delete": "Löschen",
+    "noMoveSelected": "Keine Aktion ausgewählt"
+  },
+  "actor": {
+    "player": "Spieler Aktion",
+    "opponent": "Gegner Aktion",
+    "player_short": "Du",
+    "opponent_short": "Gegner"
+  },
+  "actions": {
+    "attack": "Angriff",
+    "parry": "Parieren"
+  },
+  "moveForm": {
+    "title_add": "Neue Bewegung hinzufügen",
+    "title_edit": "Bewegung bearbeiten",
+    "name": "Bewegungsname",
+    "description": "Beschreibung",
+    "blockedAttacks": "Durch diese Parade geblockte Angriffe",
+    "easiestAttacks": "Einfachste Angriffe von dieser Parade",
+    "blockingParries": "Parieren, die diesen Angriff blocken",
+    "easiestParries": "Einfachste Parieren, um von diesem Angriff zu wechseln",
+    "hardestParries": "Schwierigste Parieren, um von diesem Angriff zu wechseln"
+  },
+  "sequence": {
+    "title": "Sequenz erstellen",
+    "noSteps": "wähle eine Aktion unten aus.",
+    "recommended": "empfohlene Aktionen",
+    "blocking": {
+      "canBlock": "🛡️ <strong>{{attack}}</strong> kann durch folgende Parieren geblockt werden (sortiert nach Geschwindigkeit): <strong>{{parries}}</strong>",
+      "cannotBlock": "⚠️ <strong>{{attack}}</strong> kann durch kein Parieren geblockt werden!"
+    },
+    "startPositions": {
+      "label": "Startpositionen",
+      "parry3": "3-Parade",
+      "parry4": "4-Parade"
+    }
+  },
+  "move": {
+    "bestChoice": "⭐ Beste Wahl",
+    "recommended": "✓ Empfohlen",
+    "possibility": "Möglichkeit",
+    "tooltipBest": "Schnellste/einfachste Aktion",
+    "tooltipRecommended": "Gute Alternative",
+    "tooltipPossible": "Möglich aber nicht optimal",
+    "blocks": "Blockt!"
+  },
+  "simulation": {
+    "placeholder": "(Simulation wird hier angezeigt)"
+  },
+  "home": {
+    "welcome": "Willkommen beim Fencing Combo Editor",
+    "subtitle": "Erstelle deine eigenen Fecht-Sequenzen mit realistischen SVG-Animationen",
+    "newAction": "Neue Aktion",
+    "newSequence": "Neue Sequenz",
+    "editMoves": "Bewegungen bearbeiten",
+    "editTitle": "Vorhandene Bewegungen bearbeiten",
+    "backToStart": "← Zurück zum Start"
+  },
+  "header": {
+    "title": "Fencing Combo Editor"
+  }
+}

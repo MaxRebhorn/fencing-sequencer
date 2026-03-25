@@ -1,32 +1,21 @@
 import React from 'react';
 import { Sword, Shield, Trash2 } from 'lucide-react';
-import { SequenceStep } from '../../types'; // we'll need to export SequenceStep type from main or a types file
-
-// This type should be defined somewhere; we'll import it.
-// For now, we'll replicate the interface here but ideally export from a shared types file.
-interface Step {
-    id: string;
-    move: {
-        id: string;
-        name: string;
-        type: 'attack' | 'parry' | 'feint';
-        svgContent: string;
-        // other move properties are not used in this component
-    };
-    actor: 'player' | 'opponent';
-}
+import { useTranslation } from 'react-i18next';
+import { SequenceStep } from '../../types';
 
 interface Props {
-    steps: Step[];
+    steps: SequenceStep[];
     onRemoveStep: (id: string) => void;
     isBlock: (prevMove: any, currentMove: any) => boolean;
 }
 
 export const SequenceStepsList: React.FC<Props> = ({ steps, onRemoveStep, isBlock }) => {
+    const { t } = useTranslation();
+
     if (steps.length === 0) {
         return (
             <div className="text-gray-500 w-full text-center py-8">
-                Keine Schritte – wähle unten eine Aktion aus.
+                {t('sequence.noSteps')}
             </div>
         );
     }
@@ -66,11 +55,11 @@ export const SequenceStepsList: React.FC<Props> = ({ steps, onRemoveStep, isBloc
                                 </div>
                                 <div className="text-xs text-center font-medium">{step.move.name}</div>
                                 <div className="text-[10px] text-center text-gray-400">
-                                    {step.actor === 'player' ? 'Du' : 'Gegner'}
+                                    {step.actor === 'player' ? t('actor.player_short') : t('actor.opponent_short')}
                                 </div>
                                 {step.move.type === 'parry' && prev && prev.move.type === 'attack' && block && (
                                     <div className="absolute -top-2 -left-2 bg-green-500 text-white text-[10px] px-1 rounded-full">
-                                        ✓ Blockt!
+                                        {t('move.blocks')}
                                     </div>
                                 )}
                             </div>
