@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { Plus, Sword, Play } from 'lucide-react';
+import { Plus, Sword, Edit } from 'lucide-react';
 import { AddMoveForm } from '../components/AddMoveForm';
 import { SequenceBuilder } from '../components/SequenceBuilder';
+import { Move } from '../types';
+import { useMoveStore } from '../store/moveStore';
 
-type View = 'start' | 'addMove' | 'newSequence' | 'simulate';
+type View = 'start' | 'addMove' | 'newSequence' | 'moveList' | 'editMove';
 
 const Home: React.FC = () => {
     const [currentView, setCurrentView] = useState<View>('start');
+    const [selectedMove, setSelectedMove] = useState<Move | undefined>(undefined);
+    const { moves } = useMoveStore();
 
     const renderContent = () => {
         switch (currentView) {
@@ -14,11 +18,44 @@ const Home: React.FC = () => {
                 return <AddMoveForm onBack={() => setCurrentView('start')} />;
             case 'newSequence':
                 return <SequenceBuilder onBack={() => setCurrentView('start')} />;
-            case 'simulate':
+            case 'moveList':
                 return (
-                    <div className="card text-center">
-                        <p className="text-gray-400">🚧 Simulation wird entwickelt 🚧</p>
+                    <div className="space-y-6">
+                        <h2 className="text-2xl font-bold neon-text text-center">Edit Existing Moves</h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            {moves.map((move) => (
+                                <div
+                                    key={move.id}
+                                    className="bg-gray-800 rounded-lg p-3 flex flex-col items-center border border-gray-700 hover:border-neon-green transition cursor-pointer"
+                                    onClick={() => {
+                                        setSelectedMove(move);
+                                        setCurrentView('editMove');
+                                    }}
+                                >
+                                    <div
+                                        className="w-20 h-20 mb-2"
+                                        dangerouslySetInnerHTML={{ __html: move.svgContent }}
+                                    />
+                                    <span className="text-sm font-semibold text-center">{move.name}</span>
+                                    <span className="text-xs text-gray-400 capitalize">{move.type}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex justify-center mt-6">
+                            <button
+                                onClick={() => setCurrentView('start')}
+                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded transition"
+                            >
+                                ← Back to Start
+                            </button>
+                        </div>
                     </div>
+                );
+            case 'editMove':
+                return selectedMove ? (
+                    <AddMoveForm move={selectedMove} onBack={() => setCurrentView('moveList')} />
+                ) : (
+                    <div>No move selected</div>
                 );
             default:
                 return (
@@ -51,7 +88,7 @@ const Home: React.FC = () => {
                 </div>
             </main>
 
-            {/* Footer mit runden Buttons */}
+            {/* Footer with round buttons */}
             <footer className="bg-gray-800/80 backdrop-blur-sm border-t border-gray-700 py-6">
                 <div className="container mx-auto px-4">
                     <div className="flex justify-center gap-8">
@@ -77,15 +114,15 @@ const Home: React.FC = () => {
                             <span className="text-sm text-gray-400 group-hover:text-neon-green">Neue Sequenz</span>
                         </button>
 
-                        {/* Button: Sequenz abspielen */}
+                        {/* Button: Bewegungen bearbeiten (replaces Simulate) */}
                         <button
-                            onClick={() => setCurrentView('simulate')}
+                            onClick={() => setCurrentView('moveList')}
                             className="group flex flex-col items-center gap-2"
                         >
                             <div className="w-20 h-20 rounded-full bg-gray-700 group-hover:bg-neon-green/20 border-2 border-neon-green shadow-neon group-hover:shadow-neon-blue transition-all duration-300 flex items-center justify-center">
-                                <Play size={32} className="text-neon-green group-hover:scale-110 transition-transform" />
+                                <Edit size={32} className="text-neon-green group-hover:scale-110 transition-transform" />
                             </div>
-                            <span className="text-sm text-gray-400 group-hover:text-neon-green">Abspielen</span>
+                            <span className="text-sm text-gray-400 group-hover:text-neon-green">Bewegungen bearbeiten</span>
                         </button>
                     </div>
                 </div>
