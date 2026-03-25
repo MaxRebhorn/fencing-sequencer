@@ -1,5 +1,6 @@
 import React from 'react';
 import { Move } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface BlockingInfo {
     attack: Move;
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export const BlockingInfoAlert: React.FC<Props> = ({ blockingInfo }) => {
+    const { t } = useTranslation();
     if (!blockingInfo) return null;
 
     return (
@@ -24,17 +26,18 @@ export const BlockingInfoAlert: React.FC<Props> = ({ blockingInfo }) => {
         >
             <p className="text-sm">
                 {blockingInfo.hasBlockingParries ? (
-                    <span className="text-green-400">
-            🛡️ <strong>{blockingInfo.attack.name}</strong> kann mit folgenden Paraden geblockt werden
-            (nach Geschwindigkeit sortiert):
-            <span className="font-bold ml-1">
-              {blockingInfo.parries.map((p) => p.name).join(', ')}
-            </span>
-          </span>
+                    <span className="text-green-400" dangerouslySetInnerHTML={{
+                        __html: t('sequence.blocking.canBlock', {
+                            attack: blockingInfo.attack.name,
+                            parries: blockingInfo.parries.map(p => p.name).join(', ')
+                        })
+                    }} />
                 ) : (
-                    <span className="text-yellow-400">
-            ⚠️ <strong>{blockingInfo.attack.name}</strong> kann von keiner Parade geblockt werden!
-          </span>
+                    <span className="text-yellow-400" dangerouslySetInnerHTML={{
+                        __html: t('sequence.blocking.cannotBlock', {
+                            attack: blockingInfo.attack.name
+                        })
+                    }} />
                 )}
             </p>
         </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
     playerStart: string;
@@ -13,6 +14,8 @@ export const StartPositionsSelect: React.FC<Props> = ({
                                                           onPlayerStartChange,
                                                           onOpponentStartChange,
                                                       }) => {
+    const { t } = useTranslation();
+
     return (
         <div className="flex gap-4 mb-6">
             <select
@@ -20,8 +23,8 @@ export const StartPositionsSelect: React.FC<Props> = ({
                 onChange={(e) => onPlayerStartChange(e.target.value)}
                 className="bg-gray-800 px-3 py-2 rounded border border-gray-700 focus:border-neon-green"
             >
-                <option>3-Parade</option>
-                <option>4-Parade</option>
+                <option value="3-Parade">{t('sequence.startPositions.parry3')}</option>
+                <option value="4-Parade">{t('sequence.startPositions.parry4')}</option>
             </select>
 
             <select
@@ -29,8 +32,8 @@ export const StartPositionsSelect: React.FC<Props> = ({
                 onChange={(e) => onOpponentStartChange(e.target.value)}
                 className="bg-gray-800 px-3 py-2 rounded border border-gray-700 focus:border-neon-green"
             >
-                <option>3-Parade</option>
-                <option>4-Parade</option>
+                <option value="3-Parade">{t('sequence.startPositions.parry3')}</option>
+                <option value="4-Parade">{t('sequence.startPositions.parry4')}</option>
             </select>
         </div>
     );

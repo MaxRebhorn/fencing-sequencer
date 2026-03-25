@@ -4,6 +4,8 @@ import { AddMoveForm } from '../components/AddMoveForm';
 import { SequenceBuilder } from '../components/SequenceBuilder';
 import { Move } from '../types';
 import { useMoveStore } from '../store/moveStore';
+import { LanguageSwitcher } from "../components/elements/LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 type View = 'start' | 'addMove' | 'newSequence' | 'moveList' | 'editMove';
 
@@ -11,6 +13,7 @@ const Home: React.FC = () => {
     const [currentView, setCurrentView] = useState<View>('start');
     const [selectedMove, setSelectedMove] = useState<Move | undefined>(undefined);
     const { moves } = useMoveStore();
+    const { t } = useTranslation();
 
     const renderContent = () => {
         switch (currentView) {
@@ -21,7 +24,7 @@ const Home: React.FC = () => {
             case 'moveList':
                 return (
                     <div className="space-y-6">
-                        <h2 className="text-2xl font-bold neon-text text-center">Edit Existing Moves</h2>
+                        <h2 className="text-2xl font-bold neon-text text-center">{t('home.editTitle')}</h2>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                             {moves.map((move) => (
                                 <div
@@ -46,7 +49,7 @@ const Home: React.FC = () => {
                                 onClick={() => setCurrentView('start')}
                                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded transition"
                             >
-                                ← Back to Start
+                                {t('home.backToStart')}
                             </button>
                         </div>
                     </div>
@@ -55,13 +58,12 @@ const Home: React.FC = () => {
                 return selectedMove ? (
                     <AddMoveForm move={selectedMove} onBack={() => setCurrentView('moveList')} />
                 ) : (
-                    <div>No move selected</div>
+                    <div>{t('common.noMoveSelected')}</div>
                 );
             default:
                 return (
                     <div className="text-center">
-                        <h2 className="text-3xl font-bold neon-text mb-4">Willkommen beim Fecht-Kombo-Editor</h2>
-                        <p className="text-gray-400">Erstelle deine eigenen Fechtsequenzen mit realistischen SVG-Animationen</p>
+                        <h2 className="text-3xl font-bold neon-text mb-4">{t('home.welcome')}</h2>
                     </div>
                 );
         }
@@ -71,13 +73,14 @@ const Home: React.FC = () => {
         <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col">
             {/* Header */}
             <header className="bg-gray-800/80 backdrop-blur-sm border-b border-gray-700 shadow-lg sticky top-0 z-10">
-                <div className="container mx-auto px-4 py-4">
+                <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                     <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-neon-green rounded-full shadow-neon"></div>
                         <h1 className="text-2xl font-bold bg-gradient-to-r from-neon-green to-neon-blue bg-clip-text text-transparent">
-                            Fecht-Kombo-Editor
+                            {t('header.title')}
                         </h1>
                     </div>
+                    <LanguageSwitcher />
                 </div>
             </header>
 
@@ -92,7 +95,7 @@ const Home: React.FC = () => {
             <footer className="bg-gray-800/80 backdrop-blur-sm border-t border-gray-700 py-6">
                 <div className="container mx-auto px-4">
                     <div className="flex justify-center gap-8">
-                        {/* Button: Neue Aktion */}
+                        {/* Button: New Action */}
                         <button
                             onClick={() => setCurrentView('addMove')}
                             className="group flex flex-col items-center gap-2"
@@ -100,10 +103,10 @@ const Home: React.FC = () => {
                             <div className="w-20 h-20 rounded-full bg-gray-700 group-hover:bg-neon-green/20 border-2 border-neon-green shadow-neon group-hover:shadow-neon-blue transition-all duration-300 flex items-center justify-center">
                                 <Plus size={32} className="text-neon-green group-hover:scale-110 transition-transform" />
                             </div>
-                            <span className="text-sm text-gray-400 group-hover:text-neon-green">Neue Aktion</span>
+                            <span className="text-sm text-gray-400 group-hover:text-neon-green">{t('home.newAction')}</span>
                         </button>
 
-                        {/* Button: Neue Sequenz */}
+                        {/* Button: New Sequence */}
                         <button
                             onClick={() => setCurrentView('newSequence')}
                             className="group flex flex-col items-center gap-2"
@@ -111,10 +114,10 @@ const Home: React.FC = () => {
                             <div className="w-24 h-24 rounded-full bg-gray-700 group-hover:bg-neon-green/20 border-2 border-neon-green shadow-neon group-hover:shadow-neon-blue transition-all duration-300 flex items-center justify-center">
                                 <Sword size={40} className="text-neon-green group-hover:scale-110 transition-transform" />
                             </div>
-                            <span className="text-sm text-gray-400 group-hover:text-neon-green">Neue Sequenz</span>
+                            <span className="text-sm text-gray-400 group-hover:text-neon-green">{t('home.newSequence')}</span>
                         </button>
 
-                        {/* Button: Bewegungen bearbeiten (replaces Simulate) */}
+                        {/* Button: Edit Moves */}
                         <button
                             onClick={() => setCurrentView('moveList')}
                             className="group flex flex-col items-center gap-2"
@@ -122,7 +125,7 @@ const Home: React.FC = () => {
                             <div className="w-20 h-20 rounded-full bg-gray-700 group-hover:bg-neon-green/20 border-2 border-neon-green shadow-neon group-hover:shadow-neon-blue transition-all duration-300 flex items-center justify-center">
                                 <Edit size={32} className="text-neon-green group-hover:scale-110 transition-transform" />
                             </div>
-                            <span className="text-sm text-gray-400 group-hover:text-neon-green">Bewegungen bearbeiten</span>
+                            <span className="text-sm text-gray-400 group-hover:text-neon-green">{t('home.editMoves')}</span>
                         </button>
                     </div>
                 </div>
