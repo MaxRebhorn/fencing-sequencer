@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Sword, Edit } from 'lucide-react';
 import { AddMoveForm } from '../components/AddMoveForm';
-import { SequenceBuilder } from '../components/SequenceBuilder';
+import { SequenceBuilder } from '../components/organisms/SequenceBuilder';
 import { Move } from '../types';
 import { useMoveStore } from '../store/moveStore';
 import { LanguageSwitcher } from "../components/elements/LanguageSwitcher";

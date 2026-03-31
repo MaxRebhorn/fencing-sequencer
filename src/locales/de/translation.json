@@ -17,7 +17,7 @@
   },
   "actions": {
     "attack": "Angriff",
-    "parry": "Parieren"
+    "parry": "Parade"
   },
   "moveForm": {
     "title_add": "Neue Bewegung hinzufügen",
@@ -34,6 +34,8 @@
     "title": "Sequenz erstellen",
     "noSteps": "wähle eine Aktion unten aus.",
     "recommended": "empfohlene Aktionen",
+    "feint": "FINTE",
+    "toggleFeint": "Als Finte markieren / entfernen",
     "blocking": {
       "canBlock": "🛡️ <strong>{{attack}}</strong> kann durch folgende Parieren geblockt werden (sortiert nach Geschwindigkeit): <strong>{{parries}}</strong>",
       "cannotBlock": "⚠️ <strong>{{attack}}</strong> kann durch kein Parieren geblockt werden!"
@@ -51,7 +53,8 @@
     "tooltipBest": "Schnellste/einfachste Aktion",
     "tooltipRecommended": "Gute Alternative",
     "tooltipPossible": "Möglich aber nicht optimal",
-    "blocks": "Blockt!"
+    "blocks": "Blockt!",
+    "spoofed": "⚡ Täuschung!"
   },
   "simulation": {
     "placeholder": "(Simulation wird hier angezeigt)"
