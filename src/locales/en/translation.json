@@ -34,14 +34,16 @@
     "title": "Build Sequence",
     "noSteps": "select an action below.",
     "recommended": "recommended actions",
+    "feint": "FEINT",
+    "toggleFeint": "Mark / unmark as feint",
     "blocking": {
       "canBlock": "🛡️ <strong>{{attack}}</strong> can be blocked by the following parries (sorted by speed): <strong>{{parries}}</strong>",
       "cannotBlock": "⚠️ <strong>{{attack}}</strong> cannot be blocked by any parry!"
     },
     "startPositions": {
       "label": "Start positions",
-      "parry3": "3-Parade",
-      "parry4": "4-Parade"
+      "parry3": "3-Parry",
+      "parry4": "4-Parry"
     }
   },
   "move": {
@@ -51,7 +53,8 @@
     "tooltipBest": "Fastest / easiest action",
     "tooltipRecommended": "Good alternative",
     "tooltipPossible": "Possible but not optimal",
-    "blocks": "Blocks!"
+    "blocks": "Blocks!",
+    "spoofed": "⚡ Spoofed!"
   },
   "simulation": {
     "placeholder": "(Simulation will appear here)"
