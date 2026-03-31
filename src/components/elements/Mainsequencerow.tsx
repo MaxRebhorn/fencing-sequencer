@@ -1,8 +1,7 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { SequenceNode, ActiveTarget } from '../SequenceBuilder';
-import { Move } from '../../types';
-import { StepCard } from './Stepcard';
+import { SequenceNode, ActiveTarget, Action, ReactionType } from '../../types';
+import { ActionCard } from '../molecules/ActionCard';
+import { AddBranchButton } from '../atoms/AddBranchButton';
 
 interface Props {
     steps: SequenceNode[];
@@ -13,7 +12,8 @@ interface Props {
     onToggleFeint: (nodeId: string) => void;
     onSelectTarget: (target: ActiveTarget) => void;
     onSetPositionOverride: (nodeId: string, position: string | undefined) => void;
-    isBlock: (prevMove: Move, currentMove: Move) => boolean;
+    onAddBranch: (feintNodeId: string, reactionType: ReactionType) => void;
+    isBlock: (prevAction: Action, currentAction: Action) => boolean;
 }
 
 export const MainSequenceRow: React.FC<Props> = ({
@@ -25,29 +25,31 @@ export const MainSequenceRow: React.FC<Props> = ({
                                                      onToggleFeint,
                                                      onSelectTarget,
                                                      onSetPositionOverride,
+                                                     onAddBranch,
                                                      isBlock,
                                                  }) => {
     return (
         <div
             data-testid="main-sequence"
-            className="flex flex-nowrap gap-2 items-start pb-2"
+            className="flex flex-nowrap gap-4 items-start pb-10"
         >
             {steps.map((step, i) => {
                 const prev = steps[i - 1];
                 const positions = positionMap.get(step.id);
                 const isActiveTar = activeTarget.type === 'main';
+                const existingBranchTypes = (step.branches || []).map(b => b.reactionType);
 
                 return (
                     <div
                         key={step.id}
                         data-testid={`main-step-column-${step.id}`}
-                        className="flex flex-col items-start"
+                        className="flex flex-col items-center shrink-0"
                     >
-                        <StepCard
+                        <ActionCard
                             step={step}
                             prevStep={prev}
-                            playerPosition={positions?.player}
-                            opponentPosition={positions?.opponent}
+                            fencerPosition={positions?.player}
+                            adversaryPosition={positions?.opponent}
                             availablePositions={availablePositions}
                             showFeintButton={true}
                             isActive={isActiveTar}
@@ -57,6 +59,19 @@ export const MainSequenceRow: React.FC<Props> = ({
                             isBlock={isBlock}
                             onClick={() => onSelectTarget({ type: 'main' })}
                         />
+                        
+                        {/* Branch-off UI: Only show if the action is marked as a feint */}
+                        {step.isFeint && (
+                            <AddBranchButton 
+                                existingTypes={existingBranchTypes} 
+                                onAdd={(type) => onAddBranch(step.id, type)} 
+                            />
+                        )}
+
+                        {/* Phase label */}
+                        <div className="mt-2 text-[9px] uppercase tracking-widest text-slate-600 font-bold">
+                           Phase {i + 1}
+                        </div>
                     </div>
                 );
             })}

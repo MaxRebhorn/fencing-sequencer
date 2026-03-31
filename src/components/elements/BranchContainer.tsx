@@ -1,8 +1,6 @@
 import React from 'react';
-import { SequenceNode, FeintBranch, ReactionType, ActiveTarget } from '../SequenceBuilder';
-import { Move } from '../../types';
+import { SequenceNode, FeintBranch, ReactionType, ActiveTarget, Action } from '../../types';
 import { BranchRow } from './BranchRow';
-import { AddBranchButton } from './Addbranchbutton';
 
 interface Props {
     steps: SequenceNode[];
@@ -11,7 +9,7 @@ interface Props {
     onRemoveStepFromBranch: (feintNodeId: string, branchId: string, nodeId: string) => void;
     onSelectTarget: (target: ActiveTarget) => void;
     onAddBranch: (feintNodeId: string, reactionType: ReactionType) => void;
-    isBlock: (prevMove: Move, currentMove: Move) => boolean;
+    isBlock: (prevAction: Action, currentAction: Action) => boolean;
 }
 
 export const BranchContainer: React.FC<Props> = ({
@@ -23,58 +21,69 @@ export const BranchContainer: React.FC<Props> = ({
                                                      onAddBranch,
                                                      isBlock,
                                                  }) => {
-    // Flatten all branches from all feint steps into a single list.
-    // Each item contains the branch and the feintNodeId it belongs to.
-    const flattenedBranches = steps.flatMap((step) =>
-        (step.isFeint || ((step.move as any).tempoOpening ?? 0) > 0) && step.branches
-            ? step.branches.map((branch) => ({ branch, feintNodeId: step.id }))
-            : []
-    );
+    // Group branches by their parent node to allow vertical stacking per node
+    const groupedBranches = steps.reduce((acc, step, index) => {
+        const hasBranches = (step.isFeint || ((step.move as any).tempoOpening ?? 0) > 0) && step.branches && step.branches.length > 0;
+        if (hasBranches) {
+            acc.push({
+                feintNodeId: step.id,
+                branches: step.branches!,
+                stepIndex: index
+            });
+        }
+        return acc;
+    }, [] as { feintNodeId: string, branches: FeintBranch[], stepIndex: number }[]);
+
+    if (groupedBranches.length === 0) return null;
+
+    // Approximate width of a card (w-44 = 176px) plus gap (gap-4 = 16px)
+    const STEP_WIDTH = 192; 
 
     return (
         <div
-            data-testid="branches-horizontal"
-            className="flex flex-nowrap gap-2 mt-6 overflow-x-auto pb-2"
+            data-testid="branches-vertical-stack"
+            className="flex flex-col gap-16 mt-12 mb-24"
         >
-            {flattenedBranches.map(({ branch, feintNodeId }) => (
-                <BranchRow
-                    key={branch.id}
-                    feintNodeId={feintNodeId}
-                    branch={branch}
-                    isActiveBranch={
-                        activeTarget.type === 'branch' &&
-                        (activeTarget as any).feintNodeId === feintNodeId &&
-                        (activeTarget as any).branchId === branch.id
-                    }
-                    availablePositions={availablePositions}
-                    onSelectBranch={() =>
-                        onSelectTarget({
-                            type: 'branch',
-                            feintNodeId: feintNodeId,
-                            branchId: branch.id,
-                        })
-                    }
-                    onRemoveStep={(nodeId) =>
-                        onRemoveStepFromBranch(feintNodeId, branch.id, nodeId)
-                    }
-                    isBlock={isBlock}
-                />
+            {groupedBranches.map((group) => (
+                <div 
+                    key={group.feintNodeId} 
+                    className="flex flex-col gap-6"
+                    style={{ marginLeft: `${group.stepIndex * STEP_WIDTH + 20}px` }}
+                >
+                    {group.branches.map((branch, bIdx) => (
+                        <div 
+                            key={branch.id} 
+                            className="relative"
+                            style={{ marginLeft: `${bIdx * 40}px` }} // Incremental offset for multiple branches
+                        >
+                            <BranchRow
+                                feintNodeId={group.feintNodeId}
+                                branch={branch}
+                                isActiveBranch={
+                                    activeTarget.type === 'branch' &&
+                                    (activeTarget as any).feintNodeId === group.feintNodeId &&
+                                    (activeTarget as any).branchId === branch.id
+                                }
+                                availablePositions={availablePositions}
+                                onSelectBranch={() =>
+                                    onSelectTarget({
+                                        type: 'branch',
+                                        feintNodeId: group.feintNodeId,
+                                        branchId: branch.id,
+                                    })
+                                }
+                                onRemoveStep={(nodeId) =>
+                                    onRemoveStepFromBranch(group.feintNodeId, branch.id, nodeId)
+                                }
+                                isBlock={isBlock}
+                            />
+                            
+                            {/* Visual Indicator: Diversion Point */}
+                            <div className="absolute -top-3 -left-4 w-2 h-2 rounded-full bg-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.4)]" />
+                        </div>
+                    ))}
+                </div>
             ))}
-
-            {/* Optionally, an “Add branch” button at the end.
-                You may want to show it only if there is at least one feint step. */}
-            {steps.some(step => step.isFeint || ((step.move as any).tempoOpening ?? 0) > 0) && (
-                // But which feint step should the new branch be added to?
-                // This depends on your UX. For simplicity, add to the last feint step.
-                <AddBranchButton
-                    node={steps.filter(step => step.isFeint || ((step.move as any).tempoOpening ?? 0) > 0).slice(-1)[0]}
-                    existingTypes={[]}
-                    onAdd={(type) => {
-                        const lastFeint = steps.findLast(step => step.isFeint || ((step.move as any).tempoOpening ?? 0) > 0);
-                        if (lastFeint) onAddBranch(lastFeint.id, type);
-                    }}
-                />
-            )}
         </div>
     );
 };

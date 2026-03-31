@@ -1,8 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { FeintBranch } from '../SequenceBuilder';
-import { Move } from '../../types';
-import { StepCard } from './Stepcard';
+import { FeintBranch, Action } from '../../types';
+import { ActionCard } from '../molecules/ActionCard';
 
 interface Props {
     feintNodeId: string;
@@ -11,7 +10,7 @@ interface Props {
     availablePositions: string[];
     onSelectBranch: () => void;
     onRemoveStep: (nodeId: string) => void;
-    isBlock: (prevMove: Move, currentMove: Move) => boolean;
+    isBlock: (prevAction: Action, currentAction: Action) => boolean;
 }
 
 const BRANCH_CONFIG: Record<string, {
@@ -20,14 +19,14 @@ const BRANCH_CONFIG: Record<string, {
     labelColor: string;
 }> = {
     'no-reaction': {
-        label: 'Bleiben',
-        rowColor: 'border-gray-600 bg-gray-800/50 text-gray-300',
-        labelColor: 'border-gray-500 bg-gray-800 text-gray-300',
+        label: 'Stay / No Reaction',
+        rowColor: 'border-slate-700 bg-slate-900/40 text-slate-300',
+        labelColor: 'border-slate-600 bg-slate-800 text-slate-400',
     },
     'attackInTempo': {
-        label: 'Angriff ins Tempo',
-        rowColor: 'border-orange-600 bg-orange-950/30 text-orange-200',
-        labelColor: 'border-orange-500 bg-orange-950/60 text-orange-300',
+        label: 'Attack in Tempo',
+        rowColor: 'border-orange-900/50 bg-orange-950/20 text-orange-200',
+        labelColor: 'border-orange-800/50 bg-orange-950/40 text-orange-400',
     },
 };
 
@@ -46,43 +45,44 @@ export const BranchRow: React.FC<Props> = ({
     return (
         <div
             data-branch-container-id={branch.id}
-            onClick={onSelectBranch}
+            onClick={(e) => {
+                e.stopPropagation();
+                onSelectBranch();
+            }}
             className={`
-                mb-2 rounded border px-3 py-2 transition cursor-pointer
+                shrink-0 rounded-lg border p-4 transition-all duration-300 cursor-pointer min-w-[200px]
                 ${isActiveBranch
-                ? `${config.rowColor} border-2 shadow-lg`
-                : `${config.rowColor}`
+                ? `${config.rowColor} border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500/30`
+                : `${config.rowColor} border-transparent hover:border-slate-600`
             }
             `}
         >
             <div
                 className={`
-                    text-[10px] font-semibold mb-1 px-2 py-1 rounded border text-center
-                    ${isActiveBranch ? 'ring-1 ring-yellow-400' : ''}
+                    inline-block text-[10px] font-bold tracking-wider uppercase mb-4 px-2 py-0.5 rounded border
                     ${config.labelColor}
                 `}
             >
                 {config.label}
             </div>
 
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-nowrap gap-3 items-start overflow-visible">
                 {branch.steps.map((step, idx) => {
                     const prevStep = idx > 0 ? branch.steps[idx - 1] : undefined;
 
                     return (
-                        <div key={step.id} className="flex items-center gap-1">
-                            <StepCard
+                        <div key={step.id} className="flex items-center gap-3">
+                            <ActionCard
                                 step={step}
                                 prevStep={prevStep}
                                 availablePositions={availablePositions}
-                                showFeintButton={true}
+                                showFeintButton={false}
                                 isActive={false}
                                 onRemove={() => onRemoveStep(step.id)}
-                                onToggleFeint={() => {}}
                                 isBlock={isBlock}
                             />
                             {idx < branch.steps.length - 1 && (
-                                <div className="text-gray-500 text-sm">→</div>
+                                <div className="text-slate-600 font-light text-xl select-none">→</div>
                             )}
                         </div>
                     );

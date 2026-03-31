@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { useMoveStore } from '../store/moveStore';
-import { Move, SequenceNode, FeintBranch, ActiveTarget, ReactionType } from '../types';
-import { StartPositionsSelect } from './elements/StartPositionsSelect';
-import { BlockingInfoAlert } from './elements/BlockingInfoAlert';
-import { ActorSelector } from './elements/ActorSelector';
-import { SequenceTree } from './elements/Sequencetree';
-import { MoveGrid } from './elements/MoveGrid';
-import { ActionButtons } from './elements/ActionButtons';
-import { SimulationPlaceholder } from './elements/SimulationPlaceholder';
+import { useMoveStore } from '../../store/moveStore';
+import { Move, SequenceNode, FeintBranch, ActiveTarget, ReactionType } from '../../types';
+import { StartPositionsSelect } from '../molecules/StartPositionsSelect';
+import { BlockingInfoAlert } from '../molecules/BlockingInfoAlert';
+import { ActorSelector } from '../molecules/ActorSelector';
+import { SequenceTree } from './SequenceTree';
+import { MoveGrid } from './MoveGrid';
+import { ActionButtons } from '../molecules/ActionButtons';
+import { SimulationPlaceholder } from '../atoms/SimulationPlaceholder';
 import { useTranslation } from 'react-i18next';
-import * as Logic from '../utils/sequenceLogic';
+import * as Logic from '../../utils/sequenceLogic';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -178,13 +178,13 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
             }
 
             const labels: Record<ReactionType, string> = {
-                'no-reaction': 'Bleiben',
-                'attackInTempo': 'Angriff ins Tempo',
+                'no-reaction': 'Stay',
+                'attackInTempo': 'Attack in Tempo',
             };
 
             const stayMove: Move = {
                 id: 'bleiben',
-                name: 'Bleiben',
+                name: 'Stay',
                 type: 'stay',
                 svgContent:
                     '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2"><circle cx="20" cy="20" r="14"/><line x1="20" y1="12" x2="20" y2="28"/><line x1="12" y1="20" x2="28" y2="20"/></svg>',
@@ -266,20 +266,20 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                         onChange={(e) => setAutoSwitch(e.target.checked)}
                         className="accent-cyan-500"
                     />
-                    Auto-Wechsel
+                    Auto-Switch
                 </label>
             </div>
 
             {activeTarget.type === 'branch' && (
                 <div className="mb-3 flex items-center gap-2 text-xs text-cyan-400 bg-cyan-900/20 border border-cyan-700/40 rounded px-3 py-2">
-                    <span>✏️ Aktiver Zweig:</span>
+                    <span>✏️ Active Branch:</span>
                     {(() => {
                         const fn = steps.find((s) => s.id === (activeTarget as any).feintNodeId);
                         const br = fn?.branches?.find((b) => b.id === (activeTarget as any).branchId);
                         return <strong>{br?.label ?? '?'}</strong>;
                     })()}
                     <button className="ml-auto text-gray-400 hover:text-white" onClick={() => setActiveTarget({ type: 'main' })}>
-                        ✕ Hauptsequenz
+                        ✕ Main Sequence
                     </button>
                 </div>
             )}
@@ -300,13 +300,13 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
 
             <div className="mb-8">
                 <h2 className="text-sm text-gray-400 mb-2 flex items-center gap-2">
-                    <span>{selectedActor === 'player' ? 'Spieler-Aktion' : 'Gegner-Aktion'}</span>
+                    <span>{selectedActor === 'player' ? 'Player Action' : 'Opponent Action'}</span>
                     {nextActorHint && autoSwitch && (
                         <span className="text-cyan-600 text-xs">({nextActorHint})</span>
                     )}
                     {suggestedMoveIds.length > 0 && (
                         <span className="ml-auto text-green-400 text-xs">
-                            ✨ {suggestedMoveIds.length} empfohlen
+                            ✨ {suggestedMoveIds.length} Recommended
                         </span>
                     )}
                 </h2>
