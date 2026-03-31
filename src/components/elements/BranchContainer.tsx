@@ -10,6 +10,7 @@ interface Props {
     onSelectTarget: (target: ActiveTarget) => void;
     onAddBranch: (feintNodeId: string, reactionType: ReactionType) => void;
     isBlock: (prevAction: Action, currentAction: Action) => boolean;
+    collapsedNodes: string[]; // Added to track folding
 }
 
 export const BranchContainer: React.FC<Props> = ({
@@ -20,8 +21,9 @@ export const BranchContainer: React.FC<Props> = ({
                                                      onSelectTarget,
                                                      onAddBranch,
                                                      isBlock,
+                                                     collapsedNodes
                                                  }) => {
-    // Group branches by their parent node to allow vertical stacking per node
+    // Group branches by their parent node
     const groupedBranches = steps.reduce((acc, step, index) => {
         const hasBranches = (step.isFeint || ((step.move as any).tempoOpening ?? 0) > 0) && step.branches && step.branches.length > 0;
         if (hasBranches) {
@@ -42,48 +44,50 @@ export const BranchContainer: React.FC<Props> = ({
     return (
         <div
             data-testid="branches-vertical-stack"
-            className="flex flex-col gap-16 mt-12 mb-24"
+            className="flex flex-col gap-4 mt-6 mb-24" // Decreased gap from 16 to 4
         >
-            {groupedBranches.map((group) => (
-                <div 
-                    key={group.feintNodeId} 
-                    className="flex flex-col gap-6"
-                    style={{ marginLeft: `${group.stepIndex * STEP_WIDTH + 20}px` }}
-                >
-                    {group.branches.map((branch, bIdx) => (
-                        <div 
-                            key={branch.id} 
-                            className="relative"
-                            style={{ marginLeft: `${bIdx * 40}px` }} // Incremental offset for multiple branches
-                        >
-                            <BranchRow
-                                feintNodeId={group.feintNodeId}
-                                branch={branch}
-                                isActiveBranch={
-                                    activeTarget.type === 'branch' &&
-                                    (activeTarget as any).feintNodeId === group.feintNodeId &&
-                                    (activeTarget as any).branchId === branch.id
-                                }
-                                availablePositions={availablePositions}
-                                onSelectBranch={() =>
-                                    onSelectTarget({
-                                        type: 'branch',
-                                        feintNodeId: group.feintNodeId,
-                                        branchId: branch.id,
-                                    })
-                                }
-                                onRemoveStep={(nodeId) =>
-                                    onRemoveStepFromBranch(group.feintNodeId, branch.id, nodeId)
-                                }
-                                isBlock={isBlock}
-                            />
-                            
-                            {/* Visual Indicator: Diversion Point */}
-                            <div className="absolute -top-3 -left-4 w-2 h-2 rounded-full bg-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.4)]" />
-                        </div>
-                    ))}
-                </div>
-            ))}
+            {groupedBranches.map((group) => {
+                const isCollapsed = collapsedNodes.includes(group.feintNodeId);
+                if (isCollapsed) return null; // Hide the entire stack if parent is folded
+
+                return (
+                    <div 
+                        key={group.feintNodeId} 
+                        className="flex flex-col gap-2" // Bare minimum gap between branches in a group
+                        style={{ marginLeft: `${(group.stepIndex + 1) * STEP_WIDTH}px` }} // Starts 1 card distance to the right
+                    >
+                        {group.branches.map((branch, bIdx) => (
+                            <div 
+                                key={branch.id} 
+                                className="relative"
+                                style={{ marginLeft: `${bIdx * 20}px` }} // Subtle incremental offset
+                            >
+                                <BranchRow
+                                    feintNodeId={group.feintNodeId}
+                                    branch={branch}
+                                    isActiveBranch={
+                                        activeTarget.type === 'branch' &&
+                                        (activeTarget as any).feintNodeId === group.feintNodeId &&
+                                        (activeTarget as any).branchId === branch.id
+                                    }
+                                    availablePositions={availablePositions}
+                                    onSelectBranch={() =>
+                                        onSelectTarget({
+                                            type: 'branch',
+                                            feintNodeId: group.feintNodeId,
+                                            branchId: branch.id,
+                                        })
+                                    }
+                                    onRemoveStep={(nodeId) =>
+                                        onRemoveStepFromBranch(group.feintNodeId, branch.id, nodeId)
+                                    }
+                                    isBlock={isBlock}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                );
+            })}
         </div>
     );
 };

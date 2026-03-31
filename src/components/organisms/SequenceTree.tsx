@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { SequenceNode, ReactionType, ActiveTarget, Action } from '../../types';
 import { MainSequenceRow } from '../elements/Mainsequencerow';
 import { BranchContainer } from '../elements/BranchContainer';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface Props {
     steps: SequenceNode[];
@@ -37,17 +38,24 @@ export const SequenceTree: React.FC<Props> = ({
         path: string;
         color: string;
         id: string;
+        feintNodeId: string;
     }>>([]);
+    const [collapsedNodes, setCollapsedNodes] = useState<string[]>([]);
+
+    const toggleCollapse = (nodeId: string) => {
+        setCollapsedNodes((prev) =>
+            prev.includes(nodeId) ? prev.filter((id) => id !== nodeId) : [...prev, nodeId]
+        );
+    };
 
     const updateArrows = useCallback(() => {
         if (!containerRef.current) return;
 
-        const newPaths: Array<{ path: string; color: string; id: string }> = [];
+        const newPaths: Array<{ path: string; color: string; id: string; feintNodeId: string }> = [];
 
         steps.forEach((step) => {
-            if (!step.isFeint || !step.branches) return;
+            if (!step.isFeint || !step.branches || step.branches.length === 0 || collapsedNodes.includes(step.id)) return;
 
-            // Find the ActionCard specifically (inside the column)
             const mainColEl = containerRef.current?.querySelector(
                 `[data-testid="main-step-column-${step.id}"]`
             ) as HTMLElement;
@@ -56,38 +64,35 @@ export const SequenceTree: React.FC<Props> = ({
             const mainRect = mainColEl.getBoundingClientRect();
             const containerRect = containerRef.current!.getBoundingClientRect();
 
-            // Start point: Center bottom of the Action Card (roughly)
             const startX = mainRect.left - containerRect.left + mainRect.width / 2;
-            const startY = (mainRect.top - containerRect.top) + 155; // Corrected start Y for new card/label layout
+            const startY = (mainRect.top - containerRect.top) + 155; 
 
-            step.branches.forEach((branch) => {
+            // Calculate vertical drop line that spans all branches
+            // We find the Y-center of each branch to determine the horizontal extensions
+            step.branches.forEach((branch, idx) => {
                 const branchEl = containerRef.current?.querySelector(
                     `[data-branch-container-id="${branch.id}"]`
                 ) as HTMLElement;
                 if (!branchEl) return;
 
                 const branchRect = branchEl.getBoundingClientRect();
-
-                // Point definitively into the left edge (middle-height) of the branch row
                 const targetX = branchRect.left - containerRect.left;
                 const targetY = branchRect.top - containerRect.top + (branchRect.height / 2);
 
-                // Bold Offset Manhattan Path: Down, then Right
-                // 1. Move to start
-                // 2. Line straight down to targetY level
-                // 3. Line straight right to targetX
+                // Manhattan path for EACH branch in the group
                 const path = `M ${startX} ${startY} L ${startX} ${targetY} L ${targetX} ${targetY}`;
 
                 newPaths.push({
                     path,
                     color: branch.reactionType === 'attackInTempo' ? '#f97316' : '#64748b',
                     id: `arrow-${step.id}-${branch.id}`,
+                    feintNodeId: step.id,
                 });
             });
         });
 
         setArrowPaths(newPaths);
-    }, [steps]);
+    }, [steps, collapsedNodes]);
 
     useEffect(() => {
         const update = () => updateArrows();
@@ -98,7 +103,7 @@ export const SequenceTree: React.FC<Props> = ({
             window.removeEventListener('resize', update);
             clearTimeout(timer);
         };
-    }, [updateArrows, steps, activeTarget]);
+    }, [updateArrows, steps, activeTarget, collapsedNodes]);
 
     if (steps.length === 0) {
         return (
@@ -108,9 +113,18 @@ export const SequenceTree: React.FC<Props> = ({
         );
     }
 
+    const hasVisibleBranches = steps.some(step => 
+        (step.isFeint || ((step.move as any).tempoOpening ?? 0) > 0) && 
+        step.branches && 
+        step.branches.length > 0 && 
+        !collapsedNodes.includes(step.id)
+    );
+
     return (
-        <div ref={containerRef} className="mb-12 overflow-x-auto relative min-h-[800px] bg-slate-900/10 rounded-xl p-4 border border-slate-800/50">
-            {/* SVG Overlay for Bold Offset Manhattan Arrows */}
+        <div 
+            ref={containerRef} 
+            className={`mb-12 overflow-x-auto relative bg-slate-900/10 rounded-xl p-4 border border-slate-800/50 transition-all duration-500 ${hasVisibleBranches ? 'min-h-[500px]' : 'min-h-0'}`}
+        >
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
                 <defs>
                     <marker
@@ -123,17 +137,15 @@ export const SequenceTree: React.FC<Props> = ({
                     >
                         <path d="M0,0 L6,3 L0,6 Z" fill="currentColor" />
                     </marker>
-
-                    {/* Strong glow for arrows */}
+                    
                     <filter id="glow-strong" x="-30%" y="-30%" width="160%" height="160%">
                         <feGaussianBlur stdDeviation="5" result="blur" />
                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                     </filter>
                 </defs>
-
+                
                 {arrowPaths.map((p) => (
                     <g key={p.id} style={{ color: p.color }}>
-                        {/* Glowing shadow path */}
                         <path
                             d={p.path}
                             stroke="currentColor"
@@ -142,7 +154,6 @@ export const SequenceTree: React.FC<Props> = ({
                             className="opacity-10"
                             filter="url(#glow-strong)"
                         />
-                        {/* Primary bold path */}
                         <path
                             d={p.path}
                             stroke="currentColor"
@@ -154,6 +165,43 @@ export const SequenceTree: React.FC<Props> = ({
                     </g>
                 ))}
             </svg>
+
+            {steps.map((step) => {
+                if (!step.isFeint || !step.branches || step.branches.length === 0) return null;
+                
+                const isCollapsed = collapsedNodes.includes(step.id);
+                
+                const mainColEl = containerRef.current?.querySelector(
+                    `[data-testid="main-step-column-${step.id}"]`
+                ) as HTMLElement;
+                if (!mainColEl) return null;
+
+                const mainRect = mainColEl.getBoundingClientRect();
+                const containerRect = containerRef.current!.getBoundingClientRect();
+
+                const buttonX = mainRect.left - containerRect.left + mainRect.width / 2;
+                const buttonY = (mainRect.top - containerRect.top) + 185; 
+
+                return (
+                    <button
+                        key={`toggle-${step.id}`}
+                        onClick={() => toggleCollapse(step.id)}
+                        className={`absolute z-20 p-1.5 rounded-full border transition-all duration-300 ${
+                            isCollapsed 
+                            ? "bg-cyan-600 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.5)] scale-110" 
+                            : "bg-slate-700/80 border-slate-600 text-white hover:bg-slate-600 shadow-lg"
+                        }`}
+                        style={{
+                            left: `${buttonX}px`,
+                            top: `${buttonY}px`,
+                            transform: 'translate(-50%, -50%)',
+                        }}
+                        title={isCollapsed ? "Show alternative tactical paths" : "Hide tactical paths"}
+                    >
+                        {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                    </button>
+                );
+            })}
 
             <div className="relative z-10">
                 <MainSequenceRow
@@ -169,17 +217,20 @@ export const SequenceTree: React.FC<Props> = ({
                     isBlock={isBlock}
                 />
 
-                <div className="mt-24"> {/* No global indent anymore; handled per node group */}
-                    <BranchContainer
-                        steps={steps}
-                        activeTarget={activeTarget}
-                        availablePositions={availablePositions}
-                        onRemoveStepFromBranch={onRemoveStepFromBranch}
-                        onSelectTarget={onSelectTarget}
-                        onAddBranch={onAddBranch}
-                        isBlock={isBlock}
-                    />
-                </div>
+                {hasVisibleBranches && (
+                    <div className="mt-24">
+                        <BranchContainer
+                            steps={steps}
+                            activeTarget={activeTarget}
+                            availablePositions={availablePositions}
+                            onRemoveStepFromBranch={onRemoveStepFromBranch}
+                            onSelectTarget={onSelectTarget}
+                            onAddBranch={onAddBranch}
+                            isBlock={isBlock}
+                            collapsedNodes={collapsedNodes}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );
