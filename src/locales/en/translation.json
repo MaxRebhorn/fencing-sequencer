@@ -64,14 +64,14 @@
   "home": {
     "welcome": "Fencing Sequencer",
     "subtitle": "Create your own historical fencing sequences with realistic technical flow",
-    "newAction": "New Action",
-    "newSequence": "New Sequence",
-    "editMoves": "Edit Actions",
+    "newAction": "Action",
+    "newSequence": "Sequence",
+    "editMoves": "Edit",
     "editTitle": "Edit Existing Actions",
     "backToStart": "← Back to Start"
   },
   "sources": {
-    "title": "Historical Sources",
+    "title": "Sources",
     "active": "Primary Source",
     "setPrimary": "Set as Primary",
     "toggleAdditional": "Toggle as Additional Source",

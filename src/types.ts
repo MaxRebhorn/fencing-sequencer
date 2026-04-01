@@ -21,6 +21,7 @@ export interface Source {
     id: string; // Unique ID for the source (e.g., 'Meyer', 'Fabris')
     name: string; // Display name of the source (e.g., 'Joachim Meyer')
     description?: string;
+    link?: string; // URL to PDF or Wiktenauer
     actionIds: string[]; // List of generic action IDs associated with this source
 }
 
@@ -45,3 +46,14 @@ export interface FeintBranch {
 export type ActiveTarget =
     | { type: 'main' }
     | { type: 'branch'; feintNodeId: string; branchId: string };
+
+// New Sequence interface
+export interface Sequence {
+    id: string;
+    name: string;
+    steps: SequenceNode[];
+    playerStart: string;
+    opponentStart: string;
+    createdAt: number;
+    updatedAt: number;
+}

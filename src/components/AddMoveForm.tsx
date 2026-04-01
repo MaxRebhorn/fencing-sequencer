@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useMoveStore } from '../store/moveStore';
+import { useSourceStore } from '../store/sourceStore';
 import { Action } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { SimpleSVGEditor } from './elements/SimpleSvgEditor';
@@ -16,6 +17,7 @@ interface RankedSelection {
 
 export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
     const { actions, addAction, updateAction } = useMoveStore();
+    const { activeSourceId } = useSourceStore();
 
     const [type, setType] = useState<'attack' | 'parry'>(move?.type || 'parry');
     const [name, setName] = useState(move?.name || '');
@@ -28,8 +30,24 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
     const [parriesFastest, setParriesFastest] = useState<RankedSelection[]>([]);
     const [parriesHardest, setParriesHardest] = useState<RankedSelection[]>([]);
 
-    const attackActions = actions.filter((a) => a.type === 'attack');
-    const parryActions = actions.filter((a) => a.type === 'parry');
+    // Get source-mapped display names for all actions
+    const attackActionsMapped = useMemo(() => {
+        return actions
+            .filter((a) => a.type === 'attack')
+            .map(a => ({
+                ...a,
+                displayName: a.sourceNames[activeSourceId] || a.name
+            }));
+    }, [actions, activeSourceId]);
+
+    const parryActionsMapped = useMemo(() => {
+        return actions
+            .filter((a) => a.type === 'parry')
+            .map(a => ({
+                ...a,
+                displayName: a.sourceNames[activeSourceId] || a.name
+            }));
+    }, [actions, activeSourceId]);
 
     const toRanked = (ids: string[]): RankedSelection[] =>
         ids.map((id, idx) => ({ id, rank: idx + 1 }));
@@ -73,7 +91,7 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
         const actionData: Action = {
             id: newId,
             sourceId: move?.sourceId || 'Custom',
-            sourceNames: move?.sourceNames || { 'Custom': name },
+            sourceNames: move?.sourceNames || { [activeSourceId]: name, 'Custom': name },
             name,
             type,
             description,
@@ -129,6 +147,7 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
 
     const renderCard = (
         svg: string,
+        displayName: string,
         rank: number | null,
         onClick: () => void,
         key: string
@@ -136,6 +155,7 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
         <div
             key={key}
             onClick={onClick}
+            title={displayName}
             className={`${cardClass} ${
                 rank ? 'border-neon-green bg-gray-800' : 'border-gray-400 bg-gray-900'
             }`}
@@ -149,11 +169,14 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
                     {rank}
                 </span>
             )}
+            <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-[6px] text-white truncate px-0.5 text-center font-bold">
+                {displayName}
+            </div>
         </div>
     );
 
     return (
-        <div className="max-w-3xl mx-auto p-6 space-y-6 bg-gray-900 rounded-xl border border-gray-800 shadow-2xl overflow-y-auto max-h-[90vh]">
+        <div className="max-w-2xl mx-auto p-6 space-y-6 bg-gray-900 rounded-xl border border-gray-800 shadow-2xl overflow-y-auto max-h-[90vh]">
             <button
                 onClick={onBack}
                 className="text-gray-400 hover:text-neon-green transition flex items-center gap-2"
@@ -161,7 +184,7 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
                 ← Back
             </button>
 
-            <h1 className="text-2xl font-bold neon-text uppercase tracking-widest">
+            <h1 className="text-2xl font-bold neon-text uppercase tracking-widest text-center">
                 {move ? 'Edit Action' : 'Add New Action'}
             </h1>
 
@@ -213,8 +236,11 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
                     </div>
                     
                     <div className="bg-gray-800/50 p-3 rounded border border-gray-700">
-                        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest leading-tight">Note</p>
-                        <p className="text-[10px] text-gray-400 mt-1">Assignments to specific historical sources and cross-source name mappings are managed exclusively via the Sources page.</p>
+                        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest leading-tight">Historical Context</p>
+                        <p className="text-[10px] text-gray-400 mt-1 italic">
+                            Currently showing names for: <span className="text-neon-blue font-bold uppercase">{activeSourceId}</span>
+                        </p>
+                        <p className="text-[10px] text-gray-500 mt-2">Mappings and source assignments are managed on the Sources page.</p>
                     </div>
                 </div>
             </div>
@@ -233,10 +259,11 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
                             <span>Blocked Attacks</span>
                             <span className="text-neon-green px-2 py-0.5 rounded-full bg-neon-green/10 text-[10px]">{defendedAttacks.length} selected</span>
                         </summary>
-                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3 p-4 bg-gray-900/50">
-                            {attackActions.map((a) =>
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 p-4 bg-gray-900/50">
+                            {attackActionsMapped.map((a) =>
                                 renderCard(
                                     a.svgContent,
+                                    a.displayName,
                                     getRank(defendedAttacks, a.id),
                                     () => handleSelectRanked(defendedAttacks, setDefendedAttacks, a.id),
                                     a.id
@@ -250,10 +277,11 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
                             <span>Easiest Ripostes (Next Actions)</span>
                             <span className="text-neon-blue px-2 py-0.5 rounded-full bg-neon-blue/10 text-[10px]">{fastestAttacks.length} ranked</span>
                         </summary>
-                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3 p-4 bg-gray-900/50">
-                            {attackActions.map((a) =>
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 p-4 bg-gray-900/50">
+                            {attackActionsMapped.map((a) =>
                                 renderCard(
                                     a.svgContent,
+                                    a.displayName,
                                     getRank(fastestAttacks, a.id),
                                     () => handleSelectRanked(fastestAttacks, setFastestAttacks, a.id),
                                     a.id
@@ -270,10 +298,11 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
                         <summary className="p-3 cursor-pointer font-bold bg-gray-800 hover:bg-gray-700 flex justify-between items-center text-xs uppercase tracking-widest text-gray-300">
                             <span>Blocked By These Parries</span>
                         </summary>
-                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3 p-4 bg-gray-900/50">
-                            {parryActions.map((p) =>
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 p-4 bg-gray-900/50">
+                            {parryActionsMapped.map((p) =>
                                 renderCard(
                                     p.svgContent,
+                                    p.displayName,
                                     getRank(parriesBlocking, p.id),
                                     () => handleSelectRanked(parriesBlocking, setParriesBlocking, p.id),
                                     p.id
@@ -286,10 +315,11 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
                         <summary className="p-3 cursor-pointer font-bold bg-gray-800 hover:bg-gray-700 flex justify-between items-center text-xs uppercase tracking-widest text-gray-300">
                             <span>Easiest Defensive Transitions</span>
                         </summary>
-                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3 p-4 bg-gray-900/50">
-                            {parryActions.map((p) =>
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 p-4 bg-gray-900/50">
+                            {parryActionsMapped.map((p) =>
                                 renderCard(
                                     p.svgContent,
+                                    p.displayName,
                                     getRank(parriesFastest, p.id),
                                     () => handleSelectRanked(parriesFastest, setParriesFastest, p.id),
                                     p.id
@@ -302,10 +332,11 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
                         <summary className="p-3 cursor-pointer font-bold bg-gray-800 hover:bg-gray-700 flex justify-between items-center text-xs uppercase tracking-widest text-gray-300">
                             <span>Hardest Defensive Transitions</span>
                         </summary>
-                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3 p-4 bg-gray-900/50">
-                            {parryActions.map((p) =>
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 p-4 bg-gray-900/50">
+                            {parryActionsMapped.map((p) =>
                                 renderCard(
                                     p.svgContent,
+                                    p.displayName,
                                     getRank(parriesHardest, p.id),
                                     () => handleSelectRanked(parriesHardest, setParriesHardest, p.id),
                                     p.id

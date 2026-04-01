@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useSourceStore } from '../../store/sourceStore';
 import { useMoveStore } from '../../store/moveStore';
 import { useTranslation } from 'react-i18next';
-import { Book, PlusCircle, CheckCircle, Edit, Trash2, X, Plus, Link as LinkIcon, ExternalLink } from 'lucide-react';
+import { Book, PlusCircle, CheckCircle, Edit, Trash2, X, Plus, Link as LinkIcon, ExternalLink, Settings } from 'lucide-react';
 import { ActionIcon } from '../atoms/ActionIcon';
 import { Action, Source } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,7 +13,8 @@ export const SourceSelector: React.FC = () => {
     const { t } = useTranslation();
 
     const [isAddingSource, setIsAddingSource] = useState(false);
-    const [newSource, setNewSource] = useState<Partial<Source>>({ name: '', description: '', actionIds: [] });
+    const [editingSourceId, setEditingSourceId] = useState<string | null>(null);
+    const [newSource, setNewSource] = useState<Partial<Source>>({ name: '', description: '', link: '', actionIds: [] });
     const [mappingAction, setMappingAction] = useState<Action | null>(null);
     const [assigningSourceId, setAssigningSourceId] = useState<string | null>(null);
 
@@ -23,9 +24,27 @@ export const SourceSelector: React.FC = () => {
             id: uuidv4(),
             name: newSource.name,
             description: newSource.description || '',
+            link: newSource.link || '',
             actionIds: newSource.actionIds || []
         });
-        setNewSource({ name: '', description: '', actionIds: [] });
+        setNewSource({ name: '', description: '', link: '', actionIds: [] });
+        setIsAddingSource(false);
+    };
+
+    const handleUpdateSource = () => {
+        if (!editingSourceId || !newSource.name) return;
+        updateSource(editingSourceId, {
+            name: newSource.name,
+            description: newSource.description,
+            link: newSource.link
+        });
+        setEditingSourceId(null);
+        setNewSource({ name: '', description: '', link: '', actionIds: [] });
+    };
+
+    const startEditing = (source: Source) => {
+        setNewSource({ name: source.name, description: source.description, link: source.link });
+        setEditingSourceId(source.id);
         setIsAddingSource(false);
     };
 
@@ -41,7 +60,7 @@ export const SourceSelector: React.FC = () => {
         const source = availableSources.find(s => s.id === sourceId);
         if (!source) return;
 
-        const updatedActionIds = source.actionIds.includes(actionId)
+        const updatedActionIds = source.actionIds.indexOf(actionId) !== -1
             ? source.actionIds.filter(id => id !== actionId)
             : [...source.actionIds, actionId];
         
@@ -52,7 +71,7 @@ export const SourceSelector: React.FC = () => {
         const source = availableSources.find(s => s.id === sourceId);
         if (!source) return null;
 
-        const sourceActions = actions.filter(a => source.actionIds.includes(a.id));
+        const sourceActions = actions.filter(a => source.actionIds.indexOf(a.id) !== -1);
         const attacks = sourceActions.filter(a => a.type === 'attack');
         const parries = sourceActions.filter(a => a.type === 'parry');
 
@@ -121,7 +140,11 @@ export const SourceSelector: React.FC = () => {
                     <p className="text-gray-500 text-sm mt-1 uppercase font-bold tracking-widest">Source Mapping & Action Bundling</p>
                 </div>
                 <button 
-                    onClick={() => setIsAddingSource(true)}
+                    onClick={() => {
+                        setIsAddingSource(true);
+                        setEditingSourceId(null);
+                        setNewSource({ name: '', description: '', link: '', actionIds: [] });
+                    }}
                     className="flex items-center gap-2 px-6 py-2 bg-neon-blue text-gray-900 rounded-full hover:bg-cyan-400 transition text-xs font-black uppercase tracking-widest shadow-[0_0_15px_rgba(0,243,255,0.3)]"
                 >
                     <Plus size={16} />
@@ -129,12 +152,12 @@ export const SourceSelector: React.FC = () => {
                 </button>
             </div>
 
-            {isAddingSource && (
+            {(isAddingSource || editingSourceId) && (
                 <div className="bg-gray-800 border-2 border-neon-blue shadow-neon-blue rounded-xl p-8 mb-8 animate-in fade-in slide-in-from-top-4 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-neon-blue/10 rounded-bl-full -mr-16 -mt-16" />
                     <h3 className="font-black uppercase tracking-widest mb-6 text-neon-blue flex items-center gap-2">
-                        <PlusCircle size={20} />
-                        Register New Fencing Source
+                        {editingSourceId ? <Settings size={20} /> : <PlusCircle size={20} />}
+                        {editingSourceId ? 'Edit Historical Source' : 'Register New Fencing Source'}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
                         <div className="space-y-4">
@@ -155,6 +178,8 @@ export const SourceSelector: React.FC = () => {
                                     <input 
                                         type="text" 
                                         placeholder="URL to PDF or Wiktenauer"
+                                        value={newSource.link}
+                                        onChange={e => setNewSource({...newSource, link: e.target.value})}
                                         className="w-full bg-gray-900 border border-gray-700 p-3 rounded-r text-white focus:border-neon-blue focus:outline-none"
                                     />
                                 </div>
@@ -171,8 +196,21 @@ export const SourceSelector: React.FC = () => {
                         </div>
                     </div>
                     <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-700">
-                        <button onClick={() => setIsAddingSource(false)} className="text-xs uppercase font-black text-gray-500 hover:text-white transition">Cancel</button>
-                        <button onClick={handleAddSource} className="px-8 py-3 bg-neon-blue text-gray-900 font-black rounded-full uppercase text-xs tracking-widest shadow-neon-blue">Create Source Entry</button>
+                        <button 
+                            onClick={() => {
+                                setIsAddingSource(false);
+                                setEditingSourceId(null);
+                            }} 
+                            className="text-xs uppercase font-black text-gray-500 hover:text-white transition"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            onClick={editingSourceId ? handleUpdateSource : handleAddSource} 
+                            className="px-8 py-3 bg-neon-blue text-gray-900 font-black rounded-full uppercase text-xs tracking-widest shadow-neon-blue"
+                        >
+                            {editingSourceId ? 'Update Source Entry' : 'Create Source Entry'}
+                        </button>
                     </div>
                 </div>
             )}
@@ -180,7 +218,7 @@ export const SourceSelector: React.FC = () => {
             <div className="grid grid-cols-1 gap-12">
                 {availableSources.map((source) => {
                     const isActive = activeSourceId === source.id;
-                    const isAdditional = additionalSourceIds.includes(source.id);
+                    const isAdditional = additionalSourceIds.indexOf(source.id) !== -1;
 
                     return (
                         <div
@@ -205,9 +243,16 @@ export const SourceSelector: React.FC = () => {
                                     <p className="text-sm text-gray-500 font-medium max-w-2xl leading-relaxed">
                                         {source.description}
                                     </p>
-                                    <button className="mt-3 flex items-center gap-1.5 text-neon-blue text-[10px] font-black uppercase tracking-widest hover:underline">
-                                        <ExternalLink size={12} /> View Documentation
-                                    </button>
+                                    {source.link && (
+                                        <a 
+                                            href={source.link} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="mt-3 inline-flex items-center gap-1.5 text-neon-blue text-[10px] font-black uppercase tracking-widest hover:underline"
+                                        >
+                                            <ExternalLink size={12} /> View Documentation
+                                        </a>
+                                    )}
                                 </div>
                                 
                                 <div className="flex gap-2 shrink-0 bg-gray-900/50 p-2 rounded-full border border-gray-700/50">
@@ -235,6 +280,13 @@ export const SourceSelector: React.FC = () => {
                                         Bundle
                                     </button>
                                     <div className="w-[1px] h-8 bg-gray-700 mx-1" />
+                                    <button 
+                                        onClick={() => startEditing(source)}
+                                        className="p-2 text-gray-600 hover:text-neon-blue transition hover:scale-110"
+                                        title="Edit Source Details"
+                                    >
+                                        <Settings size={18} />
+                                    </button>
                                     <button 
                                         onClick={() => removeSource(source.id)}
                                         className="p-2 text-gray-600 hover:text-red-500 transition hover:scale-110"
@@ -288,7 +340,7 @@ export const SourceSelector: React.FC = () => {
                                     <div key={s.id} className="flex flex-col gap-1.5 p-3 rounded-xl bg-gray-800/50 border border-transparent focus-within:border-neon-blue transition-colors">
                                         <div className="flex justify-between items-center">
                                             <span className="text-[9px] text-neon-blue font-black uppercase tracking-widest">{s.name}</span>
-                                            {!s.actionIds.includes(mappingAction.id) && <span className="text-[8px] text-gray-600 font-bold uppercase">Not Assigned</span>}
+                                            {s.actionIds.indexOf(mappingAction.id) === -1 && <span className="text-[8px] text-gray-600 font-bold uppercase">Not Assigned</span>}
                                         </div>
                                         <input 
                                             type="text"
@@ -331,7 +383,7 @@ export const SourceSelector: React.FC = () => {
                                 <h4 className="text-xs font-black uppercase tracking-widest text-pink-500 mb-4 border-b border-pink-500/20 pb-2">Attacks</h4>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
                                     {actions.filter(a => a.type === 'attack').map(a => {
-                                        const isAssigned = availableSources.find(s => s.id === assigningSourceId)?.actionIds.includes(a.id);
+                                        const isAssigned = availableSources.find(s => s.id === assigningSourceId)?.actionIds.indexOf(a.id) !== -1;
                                         return (
                                             <button 
                                                 key={a.id}
@@ -354,7 +406,7 @@ export const SourceSelector: React.FC = () => {
                                 <h4 className="text-xs font-black uppercase tracking-widest text-neon-green mb-4 border-b border-neon-green/20 pb-2">Parries</h4>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
                                     {actions.filter(a => a.type === 'parry').map(a => {
-                                        const isAssigned = availableSources.find(s => s.id === assigningSourceId)?.actionIds.includes(a.id);
+                                        const isAssigned = availableSources.find(s => s.id === assigningSourceId)?.actionIds.indexOf(a.id) !== -1;
                                         return (
                                             <button 
                                                 key={a.id}
