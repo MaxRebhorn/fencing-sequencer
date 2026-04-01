@@ -1,10 +1,10 @@
-import { Move, SequenceNode, FeintBranch, ActiveTarget } from '../types';
+import { Action, SequenceNode, FeintBranch, ActiveTarget } from '../types';
 
 export function cloneNodes(nodes: SequenceNode[]): SequenceNode[] {
     return JSON.parse(JSON.stringify(nodes));
 }
 
-export function isBlock(prev: Move, current: Move): boolean {
+export function isBlock(prev: Action, current: Action): boolean {
     return (
         current.type === 'parry' &&
         Array.isArray(current.blocks) &&
@@ -13,7 +13,7 @@ export function isBlock(prev: Move, current: Move): boolean {
 }
 
 export function inferPosition(
-    move: Move,
+    move: Action,
     startPosition: string,
     wasParried: boolean
 ): string {
@@ -101,12 +101,22 @@ export function resolveContextSteps(target: ActiveTarget, allSteps: SequenceNode
 export function analyzeAndSuggestMoves(
     ctx: SequenceNode[],
     actor: 'player' | 'opponent',
-    moves: Move[],
+    actions: Action[],
     positionMap: Map<string, { player: string; opponent: string }>,
     playerStart: string,
     opponentStart: string
 ): string[] {
-    if (ctx.length === 0) return [];
+    // ── NEW: Starting Position Logic ──────────────────────────────────────────
+    // If the sequence is empty, suggest attacks from the starting Guard
+    if (ctx.length === 0) {
+        const startGuardId = actor === 'player' ? playerStart : opponentStart;
+        const guard = actions.find(a => a.id === startGuardId);
+
+        if (guard && guard.easiestAttacks) {
+            return guard.easiestAttacks;
+        }
+        return [];
+    }
 
     const lastOppositeStep = [...ctx].reverse().find((s) => s.actor !== actor);
     if (!lastOppositeStep) return [];
@@ -126,14 +136,14 @@ export function analyzeAndSuggestMoves(
     if (isRiposteSituation && actor === lastSelfStep?.actor) {
         const ourParry = lastSelfStep.move;
         const easiestAttacks = ourParry.easiestAttacks || [];
-        const allAttacks = moves.filter((m) => m.type === 'attack');
+        const allAttacks = actions.filter((m) => m.type === 'attack');
         const scored = allAttacks.map((attack) => {
             const slowestCount = (attack.slowestParries || []).filter((pId: string) => {
-                const parry = moves.find((m) => m.id === pId);
+                const parry = actions.find((m) => m.id === pId);
                 return parry && parry.blocks?.includes(attack.id);
             }).length;
             const fastestCount = (attack.fastestParries || []).filter((pId: string) => {
-                const parry = moves.find((m) => m.id === pId);
+                const parry = actions.find((m) => m.id === pId);
                 return parry && parry.blocks?.includes(attack.id);
             }).length;
             const hardnessScore = slowestCount - fastestCount;
@@ -148,7 +158,7 @@ export function analyzeAndSuggestMoves(
     const lastOppositeMove = lastOppositeStep.move;
 
     if (lastOppositeMove.type === 'attack') {
-        const blockingParries = moves.filter(
+        const blockingParries = actions.filter(
             (m) => m.type === 'parry' && m.blocks?.includes(lastOppositeMove.id)
         );
         const currentPos = lastSelfStep
@@ -170,7 +180,7 @@ export function analyzeAndSuggestMoves(
     }
 
     if (lastOppositeMove.type === 'parry') {
-        const unblockedAttacks = moves.filter(
+        const unblockedAttacks = actions.filter(
             (m) =>
                 m.type === 'attack' &&
                 (!lastOppositeMove.blocks || !lastOppositeMove.blocks.includes(m.id))
@@ -196,7 +206,7 @@ export function analyzeAndSuggestMoves(
 export function suggestAttacksForAttackInTempo(
     activeTarget: ActiveTarget,
     steps: SequenceNode[],
-    moves: Move[],
+    actions: Action[],
     positionMap: Map<string, { player: string; opponent: string }>,
     playerStart: string,
     opponentStart: string
@@ -206,14 +216,14 @@ export function suggestAttacksForAttackInTempo(
     const branch = feintNode?.branches?.find(b => b.id === activeTarget.branchId);
     if (!branch || branch.reactionType !== 'attackInTempo') return [];
 
-    const attacks = moves.filter(m => m.type === 'attack');
+    const attacks = actions.filter(m => m.type === 'attack');
     const scored = attacks.map(attack => {
         const slowestCount = (attack.slowestParries || []).filter((pId: string) => {
-            const parry = moves.find(m => m.id === pId);
+            const parry = actions.find((m) => m.id === pId);
             return parry && parry.blocks?.includes(attack.id);
         }).length;
         const fastestCount = (attack.fastestParries || []).filter((pId: string) => {
-            const parry = moves.find(m => m.id === pId);
+            const parry = actions.find((m) => m.id === pId);
             return parry && parry.blocks?.includes(attack.id);
         }).length;
         const hardnessScore = slowestCount - fastestCount;

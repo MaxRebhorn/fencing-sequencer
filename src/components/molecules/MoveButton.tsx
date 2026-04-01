@@ -1,17 +1,19 @@
 import React from 'react';
-import { Move } from '../../types';
+import { Action } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { MoveIcon } from '../atoms/MoveIcon';
+import { useSourceStore } from '../../store/sourceStore';
 
 interface Props {
-    move: Move;
+    move: Action;
     suggestionRank: number | null;
-    onClick: (move: Move) => void;
+    onClick: (action: Action) => void;
     compact?: boolean;
 }
 
 export const MoveButton: React.FC<Props> = ({ move, suggestionRank, onClick, compact = false }) => {
     const { t } = useTranslation();
+    const { activeSourceId } = useSourceStore();
     const isSuggested = suggestionRank !== null;
 
     let borderClass = 'border-gray-700';
@@ -41,13 +43,16 @@ export const MoveButton: React.FC<Props> = ({ move, suggestionRank, onClick, com
         }
     }
 
+    // Use source-specific name for display
+    const displayName = move.sourceNames[activeSourceId] || move.name;
+
     return (
         <button
             onClick={() => onClick(move)}
             className={`${compact ? 'w-20 p-1' : 'w-28 p-2'} rounded-lg border transition-all hover:scale-105 ${borderClass} ${bgClass} ${shadowClass} hover:shadow-lg relative group`}
         >
             <MoveIcon svgContent={move.svgContent} className={compact ? 'w-6 h-6 mb-1' : 'w-8 h-8 mb-1'} />
-            <div className={`${compact ? 'text-[10px]' : 'text-xs'} text-center truncate`}>{move.name}</div>
+            <div className={`${compact ? 'text-[10px]' : 'text-xs'} text-center truncate font-bold text-gray-200`}>{displayName}</div>
             {badge}
             {isSuggested && !compact && (
                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">

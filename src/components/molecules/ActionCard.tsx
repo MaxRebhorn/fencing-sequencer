@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { SequenceNode, Action } from '../../types';
 import { PositionBadge } from '../atoms/PositionBadge';
 import { ActionIcon } from '../atoms/ActionIcon';
+import { useSourceStore } from '../../store/sourceStore';
 
 interface Props {
     step: SequenceNode;
@@ -35,9 +36,13 @@ export const ActionCard: React.FC<Props> = ({
                                               onClick,
                                           }) => {
     const { t } = useTranslation();
+    const { activeSourceId } = useSourceStore();
     const blocked = prevStep && isBlock(prevStep.move, step.move);
     const canFeint = step.move.type === 'attack' || step.move.type === 'feint';
     const isFeigningSpoofed = step.isFeint && prevStep && prevStep.move.type === 'parry' && blocked;
+
+    // Dynamically resolve the action name based on the active source
+    const displayName = step.move.sourceNames[activeSourceId] || step.move.name;
 
     return (
         <div className="flex flex-col items-center gap-0.5">
@@ -67,7 +72,7 @@ export const ActionCard: React.FC<Props> = ({
             <div
                 onClick={onClick}
                 className={`
-                    relative w-44 p-3 rounded-lg border transition cursor-pointer
+                    relative w-44 p-3 rounded-lg border transition-all duration-300 cursor-pointer overflow-hidden
                     ${step.actor === 'player'
                     ? isActive
                         ? 'bg-blue-900/50 border-blue-400 shadow-lg shadow-blue-500/20'
@@ -76,14 +81,17 @@ export const ActionCard: React.FC<Props> = ({
                         ? 'bg-red-900/50 border-red-400 shadow-lg shadow-red-500/20'
                         : 'bg-red-900/30 border-red-500'
                 } ${step.isFeint ? 'ring-2 ring-cyan-400/50' : ''}
+                group
                 `}
             >
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
                         onRemove();
                     }}
-                    className="absolute top-1 right-1 text-gray-400 hover:text-red-500 transition"
+                    className="absolute top-1 right-1 text-gray-500 hover:text-red-500 transition-colors z-10"
                 >
                     <Trash2 size={14} />
                 </button>
@@ -95,39 +103,43 @@ export const ActionCard: React.FC<Props> = ({
                             onToggleFeint?.();
                         }}
                         title={t('sequence.toggleFeint')}
-                        className={`absolute top-1 left-1 text-sm transition ${
+                        className={`absolute top-1 left-1 text-sm transition-transform hover:scale-125 z-10 ${
                             step.isFeint
-                                ? 'text-cyan-400 hover:text-cyan-300'
-                                : 'text-gray-500 hover:text-cyan-400'
+                                ? 'text-cyan-400 drop-shadow-neon'
+                                : 'text-gray-600 hover:text-cyan-400'
                         }`}
                     >
                         ⚡
                     </button>
                 )}
 
-                <ActionIcon svgContent={step.move.svgContent} />
-
-                {step.isFeint && (
-                    <div className="absolute top-1 right-6 bg-cyan-500 text-gray-900 text-[10px] px-1 font-bold rounded">FEINT</div>
-                )}
-
-                <div className="flex justify-center mb-1">
-                    {step.move.type === 'attack' && <Sword size={14} className="text-pink-400" />}
-                    {step.move.type === 'parry' && (
-                        <Shield size={14} className={blocked ? 'text-green-400' : 'text-gray-400'} />
+                <div className="mb-2 relative">
+                    <ActionIcon svgContent={step.move.svgContent} />
+                    {step.isFeint && (
+                        <div className="absolute -top-1 -right-1 bg-cyan-500 text-gray-900 text-[8px] px-1 font-black rounded uppercase tracking-tighter shadow-neon animate-pulse">FEINT</div>
                     )}
-                    {step.move.type === 'feint' && <Zap size={14} className="text-cyan-400" />}
                 </div>
 
-                <div className="text-xs text-center font-medium">{step.move.name}</div>
-                <div className="text-[10px] text-center text-gray-400">
-                    {step.actor === 'player' ? 'Fencer' : 'Adversary'}
+                <div className="flex justify-center gap-1 mb-2">
+                    {step.move.type === 'attack' && <Sword size={12} className="text-pink-500" />}
+                    {step.move.type === 'parry' && (
+                        <Shield size={12} className={blocked ? 'text-neon-green' : 'text-gray-600'} />
+                    )}
+                    {step.move.type === 'feint' && <Zap size={12} className="text-cyan-400" />}
+                </div>
+
+                {/* Bottom title area */}
+                <div className="mt-auto pt-2 border-t border-white/5">
+                    <div className="text-[11px] text-center font-black uppercase tracking-tight leading-tight mb-1 truncate text-gray-100">
+                        {displayName}
+                    </div>
+                    <div className="text-[8px] text-center text-gray-500 font-bold uppercase tracking-widest opacity-60">
+                        {step.actor === 'player' ? 'Fencer' : 'Adversary'}
+                    </div>
                 </div>
 
                 {step.move.type === 'parry' && prevStep && prevStep.move.type === 'attack' && blocked && (
-                    <div className={`absolute -top-2 -left-2 ${isFeigningSpoofed ? 'bg-yellow-500' : 'bg-green-500'} text-white text-[10px] px-1 rounded-full shadow-sm shadow-black/40`}>
-                        {isFeigningSpoofed ? 'Spoofed' : 'Blocks'}
-                    </div>
+                    <div className={`absolute bottom-0 right-0 left-0 h-0.5 ${isFeigningSpoofed ? 'bg-yellow-500' : 'bg-neon-green'}`} />
                 )}
             </div>
         </div>
