@@ -1,28 +1,30 @@
 import React from 'react';
-import { Move } from '../../types';
+import { Action } from '../../types';
 import { MoveButton } from '../molecules/MoveButton';
 
 interface Props {
-    moves: Move[];
-    suggestedMoveIds: string[];
-    onMoveClick: (move: Move) => void;
-    getSuggestionRank: (moveId: string) => number | null;
+    actions: Action[];
+    suggestedActionIds: string[];
+    onActionClick: (action: Action) => void;
+    getSuggestionRank: (actionId: string) => number | null;
 }
 
-export const MoveGrid: React.FC<Props> = ({ moves, suggestedMoveIds, onMoveClick, getSuggestionRank }) => {
-    const attacks = moves.filter((m) => m.type === 'attack');
-    const parries = moves.filter((m) => m.type === 'parry');
+export const MoveGrid: React.FC<Props> = ({ actions, suggestedActionIds, onActionClick, getSuggestionRank }) => {
+    if (!actions) return null;
 
-    const renderGrid = (moveList: Move[], title: string) => (
+    const attacks = actions.filter((a) => a.type === 'attack');
+    const parries = actions.filter((a) => a.type === 'parry');
+
+    const renderGrid = (actionList: Action[], title: string) => (
         <div className="flex-1">
             <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3 px-1">{title}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {moveList.map((move) => (
+                {actionList.map((action) => (
                     <MoveButton
-                        key={move.id}
-                        move={move}
-                        suggestionRank={getSuggestionRank(move.id)}
-                        onClick={onMoveClick}
+                        key={action.id}
+                        move={action} // Pass the full action object
+                        suggestionRank={getSuggestionRank(action.id)}
+                        onClick={onActionClick}
                     />
                 ))}
             </div>

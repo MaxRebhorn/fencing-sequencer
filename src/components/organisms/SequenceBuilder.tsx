@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useMoveStore } from '../../store/moveStore';
-import { Move, SequenceNode, FeintBranch, ActiveTarget, ReactionType } from '../../types';
+import { Action, SequenceNode, ActiveTarget, ReactionType } from '../../types';
 import { StartPositionsSelect } from '../molecules/StartPositionsSelect';
 import { BlockingInfoAlert } from '../molecules/BlockingInfoAlert';
 import { ActorSelector } from '../molecules/ActorSelector';
@@ -19,7 +19,7 @@ interface Props {
 }
 
 export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
-    const { moves } = useMoveStore();
+    const { actions } = useMoveStore();
     const { t } = useTranslation();
 
     // ── Persistent state ───────────────────────────────────────────────────────
@@ -50,7 +50,7 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
     );
 
     // ── Compute suggestions (memoized) ─────────────────────────────────────────
-    const suggestedMoveIds = useMemo(() => {
+    const suggestedActionIds = useMemo(() => {
         const isAttackInTempoEmpty =
             activeTarget.type === 'branch' &&
             steps.some(s =>
@@ -63,12 +63,12 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
             );
 
         if (isAttackInTempoEmpty) {
-            return Logic.suggestAttacksForAttackInTempo(activeTarget, steps, moves, positionMap, playerStart, opponentStart);
+            return Logic.suggestAttacksForAttackInTempo(activeTarget, steps, actions, positionMap, playerStart, opponentStart);
         } else {
             const ctx = Logic.resolveContextSteps(activeTarget, steps);
-            return Logic.analyzeAndSuggestMoves(ctx, selectedActor, moves, positionMap, playerStart, opponentStart);
+            return Logic.analyzeAndSuggestMoves(ctx, selectedActor, actions, positionMap, playerStart, opponentStart);
         }
-    }, [activeTarget, steps, selectedActor, moves, positionMap, playerStart, opponentStart]);
+    }, [activeTarget, steps, selectedActor, actions, positionMap, playerStart, opponentStart]);
 
     // ── Auto‑switch effect ────────────────────────────────────────────────────
     useEffect(() => {
@@ -88,8 +88,8 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
         const lastStep = ctx[ctx.length - 1];
         if (lastStep.actor === selectedActor || lastStep.move.type !== 'attack') return null;
         const attack = lastStep.move;
-        const blockingParries = moves.filter(
-            (m) => m.type === 'parry' && m.blocks?.includes(attack.id)
+        const blockingParries = actions.filter(
+            (a) => a.type === 'parry' && a.blocks?.includes(attack.id)
         );
         const easiestIds: string[] = attack.easiestParries || [];
         const hardestIds: string[] = attack.hardestParries || [];
@@ -102,16 +102,16 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
         return { attack, parries: sorted, hasBlockingParries: sorted.length > 0 };
     };
 
-    const getSuggestionRank = (moveId: string): number | null => {
-        const idx = suggestedMoveIds.indexOf(moveId);
+    const getSuggestionRank = (actionId: string): number | null => {
+        const idx = suggestedActionIds.indexOf(actionId);
         return idx !== -1 ? idx : null;
     };
 
     // ── Mutations ──────────────────────────────────────────────────────────────
-    const addStep = (move: Move) => {
+    const addStep = (action: Action) => {
         const newNode: SequenceNode = {
             id: Date.now().toString(),
-            move,
+            move: action,
             actor: selectedActor,
         };
 
@@ -182,21 +182,22 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                 'attackInTempo': 'Attack in Tempo',
             };
 
-            const stayMove: Move = {
-                id: 'bleiben',
-                name: 'Stay',
+            const stayAction: Action = {
+                id: 'stay_action', // Generic ID for stay action
+                sourceId: 'System', // System-level action
+                sourceNames: { System: 'Stay', Meyer: 'Bleiben', Fabris: 'Stare' }, // Example source names
                 type: 'stay',
                 svgContent:
                     '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2"><circle cx="20" cy="20" r="14"/><line x1="20" y1="12" x2="20" y2="28"/><line x1="12" y1="20" x2="28" y2="20"/></svg>',
             };
 
-            const newBranch: FeintBranch = {
+            const newBranch: any = {
                 id: `${feintNodeId}-${reactionType}-${Date.now()}`,
                 reactionType,
                 label: labels[reactionType],
                 steps:
                     reactionType === 'no-reaction'
-                        ? [{ id: `stay-${Date.now()}`, move: stayMove, actor: feintNode.actor === 'player' ? 'opponent' : 'player' }]
+                        ? [{ id: `stay-${Date.now()}`, move: stayAction, actor: feintNode.actor === 'player' ? 'opponent' : 'player' }]
                         : [],
             };
 
@@ -233,9 +234,11 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
     const blockingInfo = getBlockingParriesInfo();
 
     // ── Available parry names for position picker ──────────────────────────────
-    const parryNames = moves
-        .filter((m) => m.type === 'parry')
-        .map((m) => m.name);
+    const parryNames = useMemo(() => {
+        return actions
+            ? actions.filter((a) => a.type === 'parry').map((a) => a.name)
+            : [];
+    }, [actions]);
 
     // ── Render ─────────────────────────────────────────────────────────────────
     return (
@@ -304,16 +307,16 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                     {nextActorHint && autoSwitch && (
                         <span className="text-cyan-600 text-xs">({nextActorHint})</span>
                     )}
-                    {suggestedMoveIds.length > 0 && (
+                    {suggestedActionIds.length > 0 && (
                         <span className="ml-auto text-green-400 text-xs">
-                            ✨ {suggestedMoveIds.length} Recommended
+                            ✨ {suggestedActionIds.length} Recommended
                         </span>
                     )}
                 </h2>
                 <MoveGrid
-                    moves={moves}
-                    suggestedMoveIds={suggestedMoveIds}
-                    onMoveClick={addStep}
+                    actions={actions}
+                    suggestedActionIds={suggestedActionIds}
+                    onActionClick={addStep}
                     getSuggestionRank={getSuggestionRank}
                 />
             </div>

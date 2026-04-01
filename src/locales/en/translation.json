@@ -7,22 +7,24 @@
     "add": "Add",
     "update": "Update",
     "delete": "Delete",
-    "noMoveSelected": "No move selected"
+    "noMoveSelected": "No action selected"
   },
   "actor": {
-    "player": "Player Action",
-    "opponent": "Opponent Action",
-    "player_short": "You",
-    "opponent_short": "Opponent"
+    "player": "Fencer Action",
+    "opponent": "Adversary Action",
+    "player_short": "Fencer",
+    "opponent_short": "Adversary"
   },
   "actions": {
     "attack": "Attack",
-    "parry": "Parry"
+    "parry": "Parry",
+    "feint": "Feint",
+    "stay": "Stay"
   },
   "moveForm": {
-    "title_add": "Add New Move",
-    "title_edit": "Edit Move",
-    "name": "Move Name",
+    "title_add": "Add New Action",
+    "title_edit": "Edit Action",
+    "name": "Action Name",
     "description": "Description",
     "blockedAttacks": "Attacks blocked by this parry",
     "easiestAttacks": "Easiest attacks from this parry",
@@ -60,15 +62,23 @@
     "placeholder": "(Simulation will appear here)"
   },
   "home": {
-    "welcome": "Welcome to the Fencing Combo Editor",
-    "subtitle": "Create your own fencing sequences with realistic SVG animations",
+    "welcome": "Fencing Sequencer",
+    "subtitle": "Create your own historical fencing sequences with realistic technical flow",
     "newAction": "New Action",
     "newSequence": "New Sequence",
-    "editMoves": "Edit Moves",
-    "editTitle": "Edit Existing Moves",
+    "editMoves": "Edit Actions",
+    "editTitle": "Edit Existing Actions",
     "backToStart": "← Back to Start"
   },
+  "sources": {
+    "title": "Historical Sources",
+    "active": "Primary Source",
+    "setPrimary": "Set as Primary",
+    "toggleAdditional": "Toggle as Additional Source",
+    "actions": "Available Actions",
+    "noSourceSelected": "No source selected"
+  },
   "header": {
-    "title": "Fencing Combo Editor"
+    "title": "Fencing Sequencer"
   }
 }
