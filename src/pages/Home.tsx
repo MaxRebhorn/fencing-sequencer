@@ -3,7 +3,7 @@ import { Plus, Sword, Edit, BookOpen } from 'lucide-react';
 import { AddActionForm } from '../components/AddActionForm';
 import { SequenceBuilder } from '../components/SequenceBuilder';
 import { Action } from '../types';
-import { useActionStore } from '../store/actionStore';
+import { useActionStore, useAllActions } from '../store/actionStore';
 import { useSourceStore } from '../store/sourceStore';
 import { LanguageSwitcher } from "../components/atoms/LanguageSwitcher";
 import { useTranslation } from "react-i18next";
@@ -18,7 +18,7 @@ const Home: React.FC = () => {
     const [isAtBottom, setIsAtBottom] = useState(false);
     const footerRef = useRef<HTMLDivElement>(null);
     
-    const { actions } = useActionStore();
+    const actions = useAllActions();
     const { activeSourceId, additionalSourceIds, availableSources } = useSourceStore();
     const { t } = useTranslation();
 
