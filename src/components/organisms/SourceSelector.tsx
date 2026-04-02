@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useSourceStore } from '../../store/sourceStore';
-import { useMoveStore } from '../../store/moveStore';
+import { useActionStore, useAllActions } from '../../store/actionStore';
 import { useTranslation } from 'react-i18next';
 import { Book, PlusCircle, CheckCircle, Edit, Trash2, X, Plus, Link as LinkIcon, ExternalLink, Settings } from 'lucide-react';
 import { ActionIcon } from '../atoms/ActionIcon';
 import { Action, Source } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
+import { getActionName } from '../../utils/sequenceLogic';
 
 export const SourceSelector: React.FC = () => {
     const { availableSources, activeSourceId, additionalSourceIds, setActiveSourceId, toggleAdditionalSourceId, addSource, updateSource, removeSource } = useSourceStore();
-    const { actions, updateAction } = useMoveStore();
+    const { updateAction } = useActionStore();
+    const allActions = useAllActions();
     const { t } = useTranslation();
 
     const [isAddingSource, setIsAddingSource] = useState(false);
@@ -49,7 +51,7 @@ export const SourceSelector: React.FC = () => {
     };
 
     const handleUpdateMapping = (actionId: string, sourceId: string, newName: string) => {
-        const action = actions.find(a => a.id === actionId);
+        const action = allActions.find(a => a.id === actionId);
         if (action) {
             const updatedNames = { ...action.sourceNames, [sourceId]: newName };
             updateAction(actionId, { sourceNames: updatedNames });
@@ -71,7 +73,7 @@ export const SourceSelector: React.FC = () => {
         const source = availableSources.find(s => s.id === sourceId);
         if (!source) return null;
 
-        const sourceActions = actions.filter(a => source.actionIds.indexOf(a.id) !== -1);
+        const sourceActions = allActions.filter(a => source.actionIds.indexOf(a.id) !== -1);
         const attacks = sourceActions.filter(a => a.type === 'attack');
         const parries = sourceActions.filter(a => a.type === 'parry');
 
@@ -84,7 +86,7 @@ export const SourceSelector: React.FC = () => {
                             <div key={a.id} className="bg-gray-900 border border-gray-700 rounded p-2 flex flex-col items-center group relative h-24 justify-between">
                                 <ActionIcon svgContent={a.svgContent} className="w-8 h-8" />
                                 <span className="text-[10px] text-center font-bold text-gray-300 line-clamp-2 w-full px-1 leading-tight">
-                                    {a.sourceNames[sourceId] || a.name}
+                                    {getActionName(a, sourceId)}
                                 </span>
                                 <div className="absolute inset-0 bg-neon-blue/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded gap-2">
                                     <button onClick={() => setMappingAction(a)} title="Edit Names"><Edit size={14} className="text-white" /></button>
@@ -108,7 +110,7 @@ export const SourceSelector: React.FC = () => {
                             <div key={a.id} className="bg-gray-900 border border-gray-700 rounded p-2 flex flex-col items-center group relative h-24 justify-between">
                                 <ActionIcon svgContent={a.svgContent} className="w-8 h-8" />
                                 <span className="text-[10px] text-center font-bold text-gray-300 line-clamp-2 w-full px-1 leading-tight">
-                                    {a.sourceNames[sourceId] || a.name}
+                                    {getActionName(a, sourceId)}
                                 </span>
                                 <div className="absolute inset-0 bg-neon-blue/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded gap-2">
                                     <button onClick={() => setMappingAction(a)} title="Edit Names"><Edit size={14} className="text-white" /></button>
@@ -382,7 +384,7 @@ export const SourceSelector: React.FC = () => {
                             <div>
                                 <h4 className="text-xs font-black uppercase tracking-widest text-pink-500 mb-4 border-b border-pink-500/20 pb-2">Attacks</h4>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                                    {actions.filter(a => a.type === 'attack').map(a => {
+                                    {allActions.filter(a => a.type === 'attack').map(a => {
                                         const isAssigned = availableSources.find(s => s.id === assigningSourceId)?.actionIds.indexOf(a.id) !== -1;
                                         return (
                                             <button 
@@ -395,7 +397,7 @@ export const SourceSelector: React.FC = () => {
                                                 }`}
                                             >
                                                 <ActionIcon svgContent={a.svgContent} className="w-10 h-10" />
-                                                <span className="text-[9px] font-black uppercase text-center tracking-tighter line-clamp-1">{a.name}</span>
+                                                <span className="text-[9px] font-black uppercase text-center tracking-tighter line-clamp-1">{getActionName(a, 'System')}</span>
                                                 {isAssigned && <div className="absolute -top-2 -right-2 bg-neon-blue text-gray-900 rounded-full p-0.5"><CheckCircle size={14} /></div>}
                                             </button>
                                         );
@@ -405,7 +407,7 @@ export const SourceSelector: React.FC = () => {
                             <div>
                                 <h4 className="text-xs font-black uppercase tracking-widest text-neon-green mb-4 border-b border-neon-green/20 pb-2">Parries</h4>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                                    {actions.filter(a => a.type === 'parry').map(a => {
+                                    {allActions.filter(a => a.type === 'parry').map(a => {
                                         const isAssigned = availableSources.find(s => s.id === assigningSourceId)?.actionIds.indexOf(a.id) !== -1;
                                         return (
                                             <button 
@@ -418,7 +420,7 @@ export const SourceSelector: React.FC = () => {
                                                 }`}
                                             >
                                                 <ActionIcon svgContent={a.svgContent} className="w-10 h-10" />
-                                                <span className="text-[9px] font-black uppercase text-center tracking-tighter line-clamp-1">{a.name}</span>
+                                                <span className="text-[9px] font-black uppercase text-center tracking-tighter line-clamp-1">{getActionName(a, 'System')}</span>
                                                 {isAssigned && <div className="absolute -top-2 -right-2 bg-neon-blue text-gray-900 rounded-full p-0.5"><CheckCircle size={14} /></div>}
                                             </button>
                                         );

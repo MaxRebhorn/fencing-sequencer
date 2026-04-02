@@ -1,12 +1,13 @@
 import React from 'react';
 import { Sword, Shield, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { SequenceStep } from '../../types';
+import { SequenceNode } from '../../types/sequence';
+import { Action } from '../../types/action';
 
 interface Props {
-    steps: SequenceStep[];
+    steps: SequenceNode[];
     onRemoveStep: (id: string) => void;
-    isBlock: (prevMove: any, currentMove: any) => boolean;
+    isBlock: (prevAction: Action, currentAction: Action) => boolean;
 }
 
 export const SequenceStepsList: React.FC<Props> = ({ steps, onRemoveStep, isBlock }) => {
@@ -25,7 +26,7 @@ export const SequenceStepsList: React.FC<Props> = ({ steps, onRemoveStep, isBloc
             <div className="flex gap-4 items-center min-h-[140px] overflow-visible">
                 {steps.map((step, i) => {
                     const prev = steps[i - 1];
-                    const block = prev && isBlock(prev.move, step.move);
+                    const block = prev && isBlock(prev.action, step.action);
 
                     return (
                         <div key={step.id} className="flex items-center gap-2">
@@ -44,22 +45,22 @@ export const SequenceStepsList: React.FC<Props> = ({ steps, onRemoveStep, isBloc
                                 </button>
                                 <div
                                     className="w-10 h-10 mx-auto mb-2"
-                                    dangerouslySetInnerHTML={{ __html: step.move.svgContent }}
+                                    dangerouslySetInnerHTML={{ __html: step.action.svgContent }}
                                 />
                                 <div className="flex justify-center mb-1">
-                                    {step.move.type === 'attack' && <Sword size={14} className="text-pink-400" />}
-                                    {step.move.type === 'parry' && (
+                                    {step.action.type === 'attack' && <Sword size={14} className="text-pink-400" />}
+                                    {step.action.type === 'parry' && (
                                         <Shield size={14} className={block ? 'text-green-400' : 'text-gray-400'} />
                                     )}
-                                    {step.move.type === 'feint' && <div className="w-3 h-3 rounded-full bg-cyan-400" />}
+                                    {step.action.type === 'feint' && <div className="w-3 h-3 rounded-full bg-cyan-400" />}
                                 </div>
-                                <div className="text-xs text-center font-medium">{step.move.name}</div>
+                                <div className="text-xs text-center font-medium">{step.action.name}</div>
                                 <div className="text-[10px] text-center text-gray-400">
                                     {step.actor === 'player' ? t('actor.player_short') : t('actor.opponent_short')}
                                 </div>
-                                {step.move.type === 'parry' && prev && prev.move.type === 'attack' && block && (
+                                {step.action.type === 'parry' && prev && prev.action.type === 'attack' && block && (
                                     <div className="absolute -top-2 -left-2 bg-green-500 text-white text-[10px] px-1 rounded-full">
-                                        {t('move.blocks')}
+                                        {t('action.blocks')}
                                     </div>
                                 )}
                             </div>

@@ -29,14 +29,11 @@ export const MainSequenceRow: React.FC<Props> = ({
                                                      isBlock,
                                                  }) => {
     return (
-        <div
-            data-testid="main-sequence"
-            className="flex flex-nowrap gap-4 items-start pb-10"
-        >
+        <div data-testid="main-sequence" className="flex flex-nowrap gap-4 items-start pb-10">
             {steps.map((step, i) => {
                 const prev = steps[i - 1];
                 const positions = positionMap.get(step.id);
-                const isActiveTar = activeTarget.type === 'main';
+                const isActiveTarget = activeTarget.type === 'main';
                 const existingBranchTypes = (step.branches || []).map(b => b.reactionType);
 
                 return (
@@ -52,25 +49,24 @@ export const MainSequenceRow: React.FC<Props> = ({
                             adversaryPosition={positions?.opponent}
                             availablePositions={availablePositions}
                             showFeintButton={true}
-                            isActive={isActiveTar}
+                            isActive={isActiveTarget}
                             onRemove={() => onRemoveStep(step.id)}
                             onToggleFeint={() => onToggleFeint(step.id)}
                             onSetPositionOverride={(pos) => onSetPositionOverride(step.id, pos)}
                             isBlock={isBlock}
                             onClick={() => onSelectTarget({ type: 'main' })}
                         />
-                        
-                        {/* Branch-off UI: Only show if the action is marked as a feint */}
+
+                        {/* Only show branch buttons if this step is a feint */}
                         {step.isFeint && (
-                            <AddBranchButton 
-                                existingTypes={existingBranchTypes} 
-                                onAdd={(type) => onAddBranch(step.id, type)} 
+                            <AddBranchButton
+                                existingTypes={existingBranchTypes}
+                                onAdd={(type) => onAddBranch(step.id, type)}
                             />
                         )}
 
-                        {/* Phase label */}
                         <div className="mt-2 text-[9px] uppercase tracking-widest text-slate-600 font-bold">
-                           Phase {i + 1}
+                            Phase {i + 1}
                         </div>
                     </div>
                 );

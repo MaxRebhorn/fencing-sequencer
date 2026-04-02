@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useMoveStore } from '../../store/moveStore';
+import { useActionStore, useAllActions } from '../../store/moveStore'; // Changed useMoveStore to useActionStore
 import { useSourceStore } from '../../store/sourceStore';
 
 interface Props {
@@ -17,11 +17,11 @@ export const StartPositionsSelect: React.FC<Props> = ({
                                                           onOpponentStartChange,
                                                       }) => {
     const { t } = useTranslation();
-    const { actions } = useMoveStore();
+    const allActions = useAllActions(); // Use useAllActions to see system parries
     const { activeSourceId } = useSourceStore();
 
     // Get all parries from the system to use as starting guards
-    const parries = actions.filter(a => a.type === 'parry');
+    const parries = allActions.filter(a => a.type === 'parry');
 
     return (
         <div className="flex gap-4 mb-6">
@@ -34,7 +34,7 @@ export const StartPositionsSelect: React.FC<Props> = ({
                 >
                     {parries.map(p => (
                         <option key={`p-${p.id}`} value={p.id}>
-                            {p.sourceNames[activeSourceId] || p.name}
+                            {p.sourceNames[activeSourceId] || p.sourceNames['System'] || p.id}
                         </option>
                     ))}
                 </select>
@@ -49,7 +49,7 @@ export const StartPositionsSelect: React.FC<Props> = ({
                 >
                     {parries.map(p => (
                         <option key={`o-${p.id}`} value={p.id}>
-                            {p.sourceNames[activeSourceId] || p.name}
+                            {p.sourceNames[activeSourceId] || p.sourceNames['System'] || p.id}
                         </option>
                     ))}
                 </select>

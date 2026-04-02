@@ -1,10 +1,11 @@
 import React from 'react';
 import { Sword, Shield, Trash2, Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { SequenceNode } from '../SequenceBuilder';
-import { Move } from '../../types';
-import { PositionBadge } from './Positionbadge';
-import { FeintLabel } from './Feintlabel';
+import { SequenceNode } from '../../types/sequence';
+import { Action } from '../../types/action';
+import { PositionBadge } from '../atoms/PositionBadge';
+import { FeintLabel } from '../atoms/FeintLabel';
+import { ActionIcon } from '../atoms/ActionIcon';
 
 interface Props {
     step: SequenceNode;
@@ -17,7 +18,7 @@ interface Props {
     onRemove: () => void;
     onToggleFeint?: () => void;
     onSetPositionOverride?: (pos: string | undefined) => void;
-    isBlock: (prevMove: Move, currentMove: Move) => boolean;
+    isBlock: (prevAction: Action, currentAction: Action) => boolean;
     onClick?: () => void;
 }
 
@@ -36,9 +37,9 @@ export const StepCard: React.FC<Props> = ({
                                               onClick,
                                           }) => {
     const { t } = useTranslation();
-    const blocked = prevStep && isBlock(prevStep.move, step.move);
-    const canFeint = step.move.type === 'attack' || step.move.type === 'feint';
-    const isFeigningSpoofed = step.isFeint && prevStep && prevStep.move.type === 'parry' && blocked;
+    const blocked = prevStep && isBlock(prevStep.action, step.action);
+    const canFeint = step.action.type === 'attack' || step.action.type === 'feint';
+    const isFeigningSpoofed = step.isFeint && prevStep && prevStep.action.type === 'parry' && blocked;
 
     return (
         <div className="flex flex-col items-center gap-0.5">
@@ -108,28 +109,26 @@ export const StepCard: React.FC<Props> = ({
                     </button>
                 )}
 
-                <div className="w-10 h-10 mx-auto mb-2"
-                     dangerouslySetInnerHTML={{ __html: step.move.svgContent }}
-                />
+                <ActionIcon svgContent={step.action.svgContent} className="w-10 h-10" />
 
                 {step.isFeint && <FeintLabel />}
 
                 <div className="flex justify-center mb-1">
-                    {step.move.type === 'attack' && <Sword size={14} className="text-pink-400" />}
-                    {step.move.type === 'parry' && (
+                    {step.action.type === 'attack' && <Sword size={14} className="text-pink-400" />}
+                    {step.action.type === 'parry' && (
                         <Shield size={14} className={blocked ? 'text-green-400' : 'text-gray-400'} />
                     )}
-                    {step.move.type === 'feint' && <Zap size={14} className="text-cyan-400" />}
+                    {step.action.type === 'feint' && <Zap size={14} className="text-cyan-400" />}
                 </div>
 
-                <div className="text-xs text-center font-medium">{step.move.name}</div>
+                <div className="text-xs text-center font-medium">{step.action.name}</div>
                 <div className="text-[10px] text-center text-gray-400">
                     {step.actor === 'player' ? t('actor.player_short') : t('actor.opponent_short')}
                 </div>
 
-                {step.move.type === 'parry' && prevStep && prevStep.move.type === 'attack' && blocked && (
+                {step.action.type === 'parry' && prevStep && prevStep.action.type === 'attack' && blocked && (
                     <div className={`absolute -top-2 -left-2 ${isFeigningSpoofed ? 'bg-yellow-500' : 'bg-green-500'} text-white text-[10px] px-1 rounded-full`}>
-                        {isFeigningSpoofed ? t('move.spoofed') : t('move.blocks')}
+                        {isFeigningSpoofed ? t('action.spoofed') : t('action.blocks')}
                     </div>
                 )}
             </div>
