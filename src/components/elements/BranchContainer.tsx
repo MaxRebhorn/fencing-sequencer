@@ -10,6 +10,7 @@ interface Props {
     onSelectTarget: (target: ActiveTarget) => void;
     onAddBranch: (feintNodeId: string, reactionType: ReactionType) => void;
     isBlock: (prevAction: Action, currentAction: Action) => boolean;
+    collapsedNodes: string[];
 }
 
 export const BranchContainer: React.FC<Props> = ({
@@ -20,11 +21,13 @@ export const BranchContainer: React.FC<Props> = ({
                                                      onSelectTarget,
                                                      onAddBranch,
                                                      isBlock,
+                                                     collapsedNodes = [],
                                                  }) => {
     // Group branches by their parent node
     const groupedBranches = steps.reduce((acc, step, index) => {
         const hasBranches = step.isFeint && step.branches && step.branches.length > 0;
-        if (hasBranches) {
+        // Only include branches if the parent feint node is not collapsed
+        if (hasBranches && !collapsedNodes.includes(step.id)) {
             acc.push({
                 feintNodeId: step.id,
                 branches: step.branches!,
@@ -37,7 +40,7 @@ export const BranchContainer: React.FC<Props> = ({
     if (groupedBranches.length === 0) return null;
 
     // Approximate width of a card (w-44 = 176px) plus gap (gap-4 = 16px)
-    const STEP_WIDTH = 192; 
+    const CARD_WIDTH = 192; 
 
     return (
         <div
@@ -49,12 +52,13 @@ export const BranchContainer: React.FC<Props> = ({
                     <div 
                         key={group.feintNodeId} 
                         className="flex flex-col gap-2"
-                        style={{ marginLeft: `${(group.stepIndex + 1) * STEP_WIDTH}px` }}
+                        style={{ marginLeft: `${(group.stepIndex + 1) * CARD_WIDTH}px` }}
                     >
                         {group.branches.map((branch, bIdx) => (
                             <div 
                                 key={branch.id} 
                                 className="relative"
+                                data-branch-container-id={branch.id}
                                 style={{ marginLeft: `${bIdx * 20}px` }}
                             >
                                 <BranchRow

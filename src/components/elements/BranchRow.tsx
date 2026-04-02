@@ -44,7 +44,6 @@ export const BranchRow: React.FC<Props> = ({
 
     return (
         <div
-            data-branch-container-id={branch.id}
             onClick={(e) => {
                 e.stopPropagation();
                 onSelectBranch();
