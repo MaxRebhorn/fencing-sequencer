@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useActionStore, useAllActions } from '../store/actionStore';
 import { useSourceStore } from '../store/sourceStore';
-import { Action } from '../types';
+import { Action } from '../types/action';
 import { v4 as uuidv4 } from 'uuid';
-import { SimpleSVGEditor } from './elements/SimpleSvgEditor';
+import { SimpleSvgEditor } from './organisms/SimpleSvgEditor';
 
 interface Props {
     onBack: () => void;
@@ -219,7 +219,7 @@ export const AddActionForm: React.FC<Props> = ({ onBack, action }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                    <SimpleSVGEditor
+                    <SimpleSvgEditor
                         key={action?.id || 'new'}
                         mode={type}
                         label={name || (type === 'attack' ? 'A' : 'P')}

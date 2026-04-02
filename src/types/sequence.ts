@@ -32,3 +32,18 @@ export interface Sequence {
     updatedAt: number;
     version: number;
 }
+
+// Helper to check if an action can be feinted
+export const canBeFeinted = (action: Action): boolean => {
+    return action.type === 'attack' || action.type === 'feint';
+};
+
+// Helper to check if a feint is "spoofed" (i.e. parried by preceding action)
+export const isFeintSpoofed = (
+    currentNode: SequenceNode,
+    previousNode: SequenceNode | undefined,
+    isBlockFn: (prev: Action, current: Action) => boolean
+): boolean => {
+    if (!currentNode.isFeint || !previousNode) return false;
+    return previousNode.action.type === 'parry' && isBlockFn(previousNode.action, currentNode.action);
+};

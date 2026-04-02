@@ -1,8 +1,8 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SequenceNode, ReactionType, ActiveTarget, Action } from '../../types';
-import { MainSequenceRow } from '../elements/Mainsequencerow';
-import { BranchContainer } from '../elements/BranchContainer';
+import { MainSequenceRow } from './MainSequenceRow';
+import { BranchContainer } from './BranchContainer';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface Props {

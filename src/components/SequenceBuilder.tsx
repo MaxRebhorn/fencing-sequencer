@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { useActionStore, useAllActions } from '../store/moveStore';
+import { useAllActions } from '../store/moveStore';
 import { useSourceStore } from '../store/sourceStore';
-import { Action, SequenceNode, FeintBranch, ActiveTarget, ReactionType } from '../types';
-import { StartPositionsSelect } from './elements/StartPositionsSelect';
-import { BlockingInfoAlert } from './elements/BlockingInfoAlert';
-import { ActorSelector } from './elements/ActorSelector';
+import { Action } from '../types/action';
+import { SequenceNode, FeintBranch, ActiveTarget, ReactionType } from '../types/sequence';
+import { StartPositionsSelect } from './molecules/StartPositionsSelect';
+import { BlockingInfoAlert } from './molecules/BlockingInfoAlert';
+import { ActorSelector } from './molecules/ActorSelector';
 import { SequenceTree } from './organisms/SequenceTree';
-import { ActionGrid } from './elements/MoveGrid';
-import { ActionButtons } from './elements/ActionButtons';
-import { SimulationPlaceholder } from './elements/SimulationPlaceholder';
+import { ActionGrid } from './molecules/ActionGrid';
+import { ActionButtons } from './molecules/ActionButtons';
+import { SimulationPlaceholder } from './organisms/SimulationPlaceholder';
 import { useTranslation } from 'react-i18next';
 import * as Logic from '../utils/sequenceLogic';
 
@@ -87,9 +88,9 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
         const isAttackInTempoEmpty =
             activeTarget.type === 'branch' &&
             steps.some(s =>
-                s.id === activeTarget.feintNodeId &&
+                s.id === (activeTarget as any).feintNodeId &&
                 s.branches?.some(b =>
-                    b.id === activeTarget.branchId &&
+                    b.id === (activeTarget as any).branchId &&
                     b.reactionType === 'attackInTempo' &&
                     b.steps.length === 0
                 )
@@ -346,7 +347,6 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                 </h2>
                 <ActionGrid
                     actions={filteredActions}
-                    suggestedActionIds={suggestedActionIds}
                     onActionClick={addStep}
                     getSuggestionRank={getSuggestionRank}
                 />
