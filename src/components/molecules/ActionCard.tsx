@@ -37,12 +37,23 @@ export const ActionCard: React.FC<Props> = ({
                                           }) => {
     const { t } = useTranslation();
     const { activeSourceId } = useSourceStore();
-    const blocked = prevStep && isBlock(prevStep.move, step.move);
-    const canFeint = step.move.type === 'attack' || step.move.type === 'feint';
-    const isFeigningSpoofed = step.isFeint && prevStep && prevStep.move.type === 'parry' && blocked;
+    
+    // Safety check for action
+    if (!step || !step.action) {
+        return (
+            <div className="w-44 p-3 rounded-lg border border-red-500 bg-red-900/30 text-red-200 text-xs">
+                Invalid Action Data
+                <button onClick={onRemove} className="block mt-2 text-white underline">Remove</button>
+            </div>
+        );
+    }
+
+    const blocked = prevStep && prevStep.action && isBlock(prevStep.action, step.action);
+    const canFeint = step.action.type === 'attack' || step.action.type === 'feint';
+    const isFeigningSpoofed = step.isFeint && prevStep && prevStep.action && prevStep.action.type === 'parry' && blocked;
 
     // Dynamically resolve the action name based on the active source
-    const displayName = step.move.sourceNames[activeSourceId] || step.move.name;
+    const displayName = step.action.sourceNames?.[activeSourceId] || step.action.sourceNames?.['System'] || step.action.id;
 
     return (
         <div className="flex flex-col items-center gap-0.5">
@@ -114,18 +125,19 @@ export const ActionCard: React.FC<Props> = ({
                 )}
 
                 <div className="mb-2 relative">
-                    <ActionIcon svgContent={step.move.svgContent} />
+                    <ActionIcon svgContent={step.action.svgContent} />
                     {step.isFeint && (
                         <div className="absolute -top-1 -right-1 bg-cyan-500 text-gray-900 text-[8px] px-1 font-black rounded uppercase tracking-tighter shadow-neon animate-pulse">FEINT</div>
                     )}
                 </div>
 
                 <div className="flex justify-center gap-1 mb-2">
-                    {step.move.type === 'attack' && <Sword size={12} className="text-pink-500" />}
-                    {step.move.type === 'parry' && (
+                    {step.action.type === 'attack' && <Sword size={12} className="text-pink-500" />}
+                    {step.action.type === 'parry' && (
                         <Shield size={12} className={blocked ? 'text-neon-green' : 'text-gray-600'} />
                     )}
-                    {step.move.type === 'feint' && <Zap size={12} className="text-cyan-400" />}
+                    {step.action.type === 'feint' && <Zap size={12} className="text-cyan-400" />}
+                    {step.action.type === 'stay' && <div className="text-[10px] text-gray-400">WAIT</div>}
                 </div>
 
                 {/* Bottom title area */}
@@ -138,7 +150,7 @@ export const ActionCard: React.FC<Props> = ({
                     </div>
                 </div>
 
-                {step.move.type === 'parry' && prevStep && prevStep.move.type === 'attack' && blocked && (
+                {step.action.type === 'parry' && prevStep && prevStep.action && prevStep.action.type === 'attack' && blocked && (
                     <div className={`absolute bottom-0 right-0 left-0 h-0.5 ${isFeigningSpoofed ? 'bg-yellow-500' : 'bg-neon-green'}`} />
                 )}
             </div>

@@ -19,49 +19,49 @@ const initialSources: Source[] = [
         name: 'Joachim Meyer',
         description: '16th Century German fencing master.',
         link: 'https://wiktenauer.com/wiki/Joachim_Meyer',
-        actionIds: ['cut1', 'cut2', 'cut3', 'cut4', 'cut5', 'cut6', 'cut7', 'cut8', 'prime', 'seconde', 'tierce', 'quarte', 'quinte', 'sixte', 'septime']
+        actionIds: ['sabre_cut_1', 'sabre_cut_2', 'sabre_cut_3', 'sabre_cut_4', 'sabre_cut_5', 'sabre_cut_6', 'sabre_cut_7', 'sabre_parry_1', 'sabre_parry_2', 'sabre_parry_3', 'sabre_parry_4', 'sabre_parry_5', 'sabre_parry_6', 'sabre_parry_7', 'stay_action']
     },
     {
         id: 'Angelo',
         name: 'Henry Charles Angelo',
         description: 'Infantry Sword Exercise, 1845.',
         link: 'https://archive.org/details/infantryswordexe00ange',
-        actionIds: ['cut1', 'cut2', 'cut3', 'cut4', 'cut5', 'cut6', 'cut7', 'prime', 'seconde', 'tierce', 'quarte', 'quinte', 'sixte']
+        actionIds: ['sabre_cut_1', 'sabre_cut_2', 'sabre_cut_3', 'sabre_cut_4', 'sabre_cut_5', 'sabre_cut_6', 'sabre_cut_7', 'sabre_parry_1', 'sabre_parry_2', 'sabre_parry_3', 'sabre_parry_4', 'sabre_parry_5', 'sabre_parry_6', 'stay_action']
     },
     {
         id: 'Waite',
         name: 'John Musgrave Waite',
         description: 'Lessons in Sabre, Singlestick.',
         link: 'https://wiktenauer.com/wiki/John_Musgrave_Waite',
-        actionIds: ['cut1', 'cut2', 'cut3', 'cut4', 'cut5', 'cut6', 'cut7', 'prime', 'seconde', 'tierce', 'quarte', 'quinte', 'sixte']
+        actionIds: ['sabre_cut_1', 'sabre_cut_2', 'sabre_cut_3', 'sabre_cut_4', 'sabre_cut_5', 'sabre_cut_6', 'sabre_cut_7', 'sabre_parry_1', 'sabre_parry_2', 'sabre_parry_3', 'sabre_parry_4', 'sabre_parry_5', 'sabre_parry_6', 'stay_action']
     },
     {
         id: 'Radaelli',
         name: 'Giuseppe Radaelli',
         description: 'Italian classical sabre tradition.',
         link: 'https://wiktenauer.com/wiki/Giuseppe_Radaelli',
-        actionIds: ['molinello_head_right', 'molinello_head_left', 'molinello_flank_right', 'molinello_flank_left', 'molinello_face', 'thrust', 'prime', 'seconde', 'tierce', 'quarte', 'quinte', 'sixte', 'septime']
+        actionIds: ['sabre_molinello_head_right', 'sabre_thrust', 'sabre_parry_1', 'sabre_parry_2', 'sabre_parry_3', 'sabre_parry_4', 'sabre_parry_5', 'sabre_parry_6', 'sabre_parry_7', 'stay_action']
     },
     {
         id: 'Barbasetti',
         name: 'Luigi Barbasetti',
         description: 'The Art of the Sabre and the Epee.',
         link: 'https://archive.org/details/artofsabreandepe00barb',
-        actionIds: ['cut1', 'cut2', 'cut3', 'cut4', 'cut5', 'thrust', 'prime', 'seconde', 'tierce', 'quarte', 'quinte', 'sixte', 'septime']
+        actionIds: ['sabre_cut_1', 'sabre_cut_2', 'sabre_cut_3', 'sabre_cut_4', 'sabre_cut_5', 'sabre_thrust', 'sabre_parry_1', 'sabre_parry_2', 'sabre_parry_3', 'sabre_parry_4', 'sabre_parry_5', 'sabre_parry_6', 'sabre_parry_7', 'stay_action']
     },
     {
         id: 'Hutton',
         name: 'Alfred Hutton',
         description: 'Cold Steel, The Swordsman.',
         link: 'https://wiktenauer.com/wiki/Alfred_Hutton',
-        actionIds: ['cut1', 'cut2', 'cut3', 'cut4', 'cut5', 'cut6', 'cut7', 'molinello_head_right', 'thrust', 'prime', 'seconde', 'tierce', 'quarte', 'quinte', 'hanging_guard']
+        actionIds: ['sabre_cut_1', 'sabre_cut_2', 'sabre_cut_3', 'sabre_cut_4', 'sabre_cut_5', 'sabre_cut_6', 'sabre_cut_7', 'sabre_molinello_head_right', 'sabre_thrust', 'sabre_parry_1', 'sabre_parry_2', 'sabre_parry_3', 'sabre_parry_4', 'sabre_parry_5', 'sabre_hanging_guard', 'stay_action']
     },
     {
         id: 'Roworth',
         name: 'Charles Roworth',
         description: 'Art of Defence on Foot.',
         link: 'https://wiktenauer.com/wiki/Charles_Roworth',
-        actionIds: ['cut1', 'cut2', 'cut3', 'cut4', 'cut5', 'cut6', 'cut7', 'prime', 'seconde', 'tierce', 'quarte', 'hanging_guard']
+        actionIds: ['sabre_cut_1', 'sabre_cut_2', 'sabre_cut_3', 'sabre_cut_4', 'sabre_cut_5', 'sabre_cut_6', 'sabre_cut_7', 'sabre_parry_1', 'sabre_parry_2', 'sabre_parry_3', 'sabre_parry_4', 'sabre_hanging_guard', 'stay_action']
     }
 ];
 

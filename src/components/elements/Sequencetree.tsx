@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SequenceNode, FeintBranch, ReactionType, ActiveTarget } from '../SequenceBuilder';
-import { Move } from '../../types';
+import { SequenceNode, ReactionType, ActiveTarget } from '../../types';
+import { Action } from '../../types';
 import { MainSequenceRow } from './Mainsequencerow';
 import { BranchContainer } from './BranchContainer';
 import { BranchArrows } from './Brancharrows';
@@ -17,7 +17,7 @@ interface Props {
     onAddBranch: (feintNodeId: string, reactionType: ReactionType) => void;
     onSelectTarget: (target: ActiveTarget) => void;
     onSetPositionOverride: (nodeId: string, position: string | undefined) => void;
-    isBlock: (prevMove: Move, currentMove: Move) => boolean;
+    isBlock: (prevAction: Action, currentAction: Action) => boolean;
 }
 
 export const SequenceTree: React.FC<Props> = ({
@@ -70,7 +70,7 @@ export const SequenceTree: React.FC<Props> = ({
 
                 const branchRect = branchEl.getBoundingClientRect();
                 // End at top-left edge of branch container
-                const targetX = branchRect.top - containerRect.left;
+                const targetX = branchRect.left - containerRect.left;
                 const targetY = branchRect.top - containerRect.top;
 
                 // Create straight line path
@@ -104,7 +104,7 @@ export const SequenceTree: React.FC<Props> = ({
     }
 
     return (
-        <div ref={containerRef} className="mb-8 overflow-x-auto relative">
+        <div ref={containerRef} className="mb-8 overflow-x-auto relative min-h-[400px]">
             <BranchArrows arrowPaths={arrowPaths} />
 
             <MainSequenceRow
@@ -116,6 +116,7 @@ export const SequenceTree: React.FC<Props> = ({
                 onToggleFeint={onToggleFeint}
                 onSelectTarget={onSelectTarget}
                 onSetPositionOverride={onSetPositionOverride}
+                onAddBranch={onAddBranch}
                 isBlock={isBlock}
             />
 

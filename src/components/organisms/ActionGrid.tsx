@@ -1,7 +1,6 @@
 import React from 'react';
 import { Action } from '../../types';
-import { MoveButton } from '../molecules/MoveButton';
-
+import { ActionButton } from '../molecules/ActionButton';
 interface Props {
     actions: Action[];
     suggestedActionIds: string[];
@@ -9,7 +8,7 @@ interface Props {
     getSuggestionRank: (actionId: string) => number | null;
 }
 
-export const MoveGrid: React.FC<Props> = ({ actions, suggestedActionIds, onActionClick, getSuggestionRank }) => {
+export const ActionGrid: React.FC<Props> = ({ actions, suggestedActionIds, onActionClick, getSuggestionRank }) => {
     if (!actions) return null;
 
     const attacks = actions.filter((a) => a.type === 'attack');
@@ -20,9 +19,9 @@ export const MoveGrid: React.FC<Props> = ({ actions, suggestedActionIds, onActio
             <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3 px-1">{title}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {actionList.map((action) => (
-                    <MoveButton
+                    <ActionButton
                         key={action.id}
-                        move={action} // Pass the full action object
+                        action={action}
                         suggestionRank={getSuggestionRank(action.id)}
                         onClick={onActionClick}
                     />

@@ -1,28 +1,28 @@
 import React from 'react';
-import { Move } from '../../types';
+import { Action } from '../../types';
 import { MoveButton } from './MoveButton';
 
 interface Props {
-    moves: Move[];
-    suggestedMoveIds: string[];
-    onMoveClick: (move: Move) => void;
-    getSuggestionRank: (moveId: string) => number | null; // passed from parent
+    actions: Action[];
+    suggestedActionIds: string[];
+    onActionClick: (action: Action) => void;
+    getSuggestionRank: (actionId: string) => number | null;
 }
 
-export const MoveGrid: React.FC<Props> = ({
-                                              moves,
-                                              suggestedMoveIds,
-                                              onMoveClick,
-                                              getSuggestionRank,
-                                          }) => {
+export const ActionGrid: React.FC<Props> = ({
+    actions,
+    suggestedActionIds,
+    onActionClick,
+    getSuggestionRank,
+}) => {
     return (
         <div className="flex flex-wrap gap-3">
-            {moves.map((move) => (
+            {actions.map((action) => (
                 <MoveButton
-                    key={move.id}
-                    move={move}
-                    suggestionRank={getSuggestionRank(move.id)}
-                    onClick={onMoveClick}
+                    key={action.id}
+                    move={action}
+                    suggestionRank={getSuggestionRank(action.id)}
+                    onClick={onActionClick}
                 />
             ))}
         </div>

@@ -1,17 +1,22 @@
 import React from 'react';
-import { Move } from '../../types';
+import { Action } from '../../types';
 import { useTranslation } from 'react-i18next';
+import { useSourceStore } from '../../store/sourceStore';
+import { getActionName } from '../../utils/sequenceLogic';
 
 interface Props {
-    move: Move;
+    move: Action;
     suggestionRank: number | null;
-    onClick: (move: Move) => void;
+    onClick: (move: Action) => void;
     compact?: boolean;
 }
 
 export const MoveButton: React.FC<Props> = ({ move, suggestionRank, onClick, compact = false }) => {
     const { t } = useTranslation();
+    const activeSourceId = useSourceStore(state => state.activeSourceId);
     const isSuggested = suggestionRank !== null;
+
+    const actionName = getActionName(move, activeSourceId);
 
     let borderClass = 'border-gray-700';
     let bgClass = 'bg-gray-800';
@@ -49,7 +54,7 @@ export const MoveButton: React.FC<Props> = ({ move, suggestionRank, onClick, com
                 className={`${compact ? 'w-6 h-6' : 'w-8 h-8'} mx-auto mb-1`}
                 dangerouslySetInnerHTML={{ __html: move.svgContent }}
             />
-            <div className={`${compact ? 'text-[10px]' : 'text-xs'} text-center truncate`}>{move.name}</div>
+            <div className={`${compact ? 'text-[10px]' : 'text-xs'} text-center truncate`}>{actionName}</div>
             {badge}
             {isSuggested && !compact && (
                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">

@@ -1,17 +1,17 @@
 import React from 'react';
 import { Action } from '../../types';
 import { useTranslation } from 'react-i18next';
-import { MoveIcon } from '../atoms/MoveIcon';
+import { ActionIcon } from '../atoms/ActionIcon';
 import { useSourceStore } from '../../store/sourceStore';
 
 interface Props {
-    move: Action;
+    action: Action;
     suggestionRank: number | null;
     onClick: (action: Action) => void;
     compact?: boolean;
 }
 
-export const MoveButton: React.FC<Props> = ({ move, suggestionRank, onClick, compact = false }) => {
+export const ActionButton: React.FC<Props> = ({ action, suggestionRank, onClick, compact = false }) => {
     const { t } = useTranslation();
     const { activeSourceId } = useSourceStore();
     const isSuggested = suggestionRank !== null;
@@ -43,15 +43,15 @@ export const MoveButton: React.FC<Props> = ({ move, suggestionRank, onClick, com
         }
     }
 
-    // Use source-specific name for display
-    const displayName = move.sourceNames[activeSourceId] || move.name;
+    // Use source-specific name for display, with optional chaining for sourceNames
+    const displayName = action.sourceNames?.[activeSourceId] || action.sourceNames?.['System'] || action.id;
 
     return (
         <button
-            onClick={() => onClick(move)}
+            onClick={() => onClick(action)}
             className={`${compact ? 'w-20 p-1' : 'w-28 p-2'} rounded-lg border transition-all hover:scale-105 ${borderClass} ${bgClass} ${shadowClass} hover:shadow-lg relative group`}
         >
-            <MoveIcon svgContent={move.svgContent} className={compact ? 'w-6 h-6 mb-1' : 'w-8 h-8 mb-1'} />
+            <ActionIcon svgContent={action.svgContent} className={compact ? 'w-6 h-6' : 'w-8 h-8'} />
             <div className={`${compact ? 'text-[10px]' : 'text-xs'} text-center truncate font-bold text-gray-200`}>{displayName}</div>
             {badge}
             {isSuggested && !compact && (
