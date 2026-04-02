@@ -6,7 +6,7 @@ import { Action, SequenceNode, FeintBranch, ActiveTarget, ReactionType } from '.
 import { StartPositionsSelect } from './elements/StartPositionsSelect';
 import { BlockingInfoAlert } from './elements/BlockingInfoAlert';
 import { ActorSelector } from './elements/ActorSelector';
-import { SequenceTree } from './elements/Sequencetree';
+import { SequenceTree } from './organisms/SequenceTree';
 import { ActionGrid } from './elements/MoveGrid';
 import { ActionButtons } from './elements/ActionButtons';
 import { SimulationPlaceholder } from './elements/SimulationPlaceholder';

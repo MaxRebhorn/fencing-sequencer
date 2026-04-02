@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SequenceNode, ReactionType, ActiveTarget, Action } from '../../types';
-import { MainSequenceRow } from '../elements/MainSequenceRow';
+import { MainSequenceRow } from '../elements/Mainsequencerow';
 import { BranchContainer } from '../elements/BranchContainer';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
@@ -82,7 +82,7 @@ export const SequenceTree: React.FC<Props> = ({
                 // Compute targetY = branchRect.top - containerRect.top + branchRect.height / 2
                 const targetY = branchRect.top - containerRect.top + branchRect.height / 2;
 
-                // Build path: M ${startX} ${startY} L ${startX} ${targetY} L ${targetX} ${targetY}
+                // Build Manhattan path: M ${startX} ${startY} L ${startX} ${targetY} L ${targetX} ${targetY}
                 const path = `M ${startX} ${startY} L ${startX} ${targetY} L ${targetX} ${targetY}`;
 
                 newPaths.push({
@@ -100,26 +100,31 @@ export const SequenceTree: React.FC<Props> = ({
     useEffect(() => {
         const update = () => updateArrows();
         
-        // Initial call
         update();
         
-        // Catch layout shifts
-        const timer = setTimeout(update, 100);
-        const timer2 = setTimeout(update, 500);
+        // Comprehensive triggers for arrow updates
+        const timers = [
+            setTimeout(update, 50),
+            setTimeout(update, 150),
+            setTimeout(update, 300),
+            setTimeout(update, 600),
+            setTimeout(update, 1000)
+        ];
 
         window.addEventListener('resize', update);
+        window.addEventListener('scroll', update, true); // Catch scrolls in containers
         
-        // Use ResizeObserver for the container and children
         const observer = new ResizeObserver(update);
         if (containerRef.current) {
             observer.observe(containerRef.current);
+            // Also observe some children if possible, or just the whole container
         }
 
         return () => {
             window.removeEventListener('resize', update);
+            window.removeEventListener('scroll', update, true);
             observer.disconnect();
-            clearTimeout(timer);
-            clearTimeout(timer2);
+            timers.forEach(clearTimeout);
         };
     }, [updateArrows, steps, activeTarget, collapsedNodes]);
 
@@ -160,7 +165,6 @@ export const SequenceTree: React.FC<Props> = ({
 
                 {arrowPaths.map((p) => (
                     <g key={p.id} style={{ color: p.color }}>
-                        {/* A thick, low‑opacity, blurred “glow” version (strokeWidth 8, opacity 0.1, filter="url(#glow-strong)"). */}
                         <path
                             d={p.path}
                             stroke="currentColor"
@@ -169,7 +173,6 @@ export const SequenceTree: React.FC<Props> = ({
                             className="opacity-10"
                             filter="url(#glow-strong)"
                         />
-                        {/* A solid version (strokeWidth 4) with an arrowhead marker. */}
                         <path
                             d={p.path}
                             stroke="currentColor"
@@ -195,9 +198,6 @@ export const SequenceTree: React.FC<Props> = ({
                 const mainRect = mainColEl.getBoundingClientRect();
                 const containerRect = containerRef.current!.getBoundingClientRect();
 
-                // From GEMINI.md Step 5
-                // left = (mainRect.left - containerRect.left + mainRect.width/2)
-                // top = (mainRect.top - containerRect.top) + 185
                 const buttonX = mainRect.left - containerRect.left + mainRect.width / 2;
                 const buttonY = (mainRect.top - containerRect.top) + 185;
 
