@@ -9,7 +9,7 @@ interface Props {
     initialSVG?: string;
 }
 
-export const SimpleSVGEditor: React.FC<Props> = ({ mode, label = '1', onChange, initialSVG }) => {
+export const SimpleSvgEditor: React.FC<Props> = ({ mode, label = '1', onChange, initialSVG }) => {
     const svgRef = useRef<SVGSVGElement | null>(null);
     const [positions, setPositions] = useState(() => ({
         back: { x: 50, y: 80 },

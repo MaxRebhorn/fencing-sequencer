@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Plus, Sword, Edit, BookOpen } from 'lucide-react';
-import { AddMoveForm } from '../components/AddMoveForm';
-import { SequenceBuilder } from '../components/organisms/SequenceBuilder';
+import { AddActionForm } from '../components/AddActionForm';
+import { SequenceBuilder } from '../components/SequenceBuilder';
 import { Action } from '../types';
-import { useMoveStore } from '../store/moveStore';
+import { useActionStore, useAllActions } from '../store/actionStore';
 import { useSourceStore } from '../store/sourceStore';
 import { LanguageSwitcher } from "../components/atoms/LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 import { SourceSelector } from '../components/organisms/SourceSelector';
 
-type View = 'start' | 'addMove' | 'newSequence' | 'moveList' | 'editMove' | 'sources';
+type View = 'start' | 'addAction' | 'newSequence' | 'actionList' | 'editAction' | 'sources';
 
 const Home: React.FC = () => {
     const [currentView, setCurrentView] = useState<View>('start');
@@ -18,7 +18,7 @@ const Home: React.FC = () => {
     const [isAtBottom, setIsAtBottom] = useState(false);
     const footerRef = useRef<HTMLDivElement>(null);
     
-    const { actions } = useMoveStore();
+    const actions = useAllActions();
     const { activeSourceId, additionalSourceIds, availableSources } = useSourceStore();
     const { t } = useTranslation();
 
@@ -59,13 +59,13 @@ const Home: React.FC = () => {
         switch (currentView) {
             case 'sources':
                 return false; 
-            case 'addMove':
+            case 'addAction':
                 return true; 
             case 'newSequence':
                 return !isAtBottom; 
-            case 'editMove':
+            case 'editAction':
                 return !isAtBottom; 
-            case 'moveList':
+            case 'actionList':
                 return isScrolled && !isAtBottom;
             case 'start':
                 return false; 
@@ -100,8 +100,8 @@ const Home: React.FC = () => {
 
     const renderContent = () => {
         switch (currentView) {
-            case 'addMove':
-                return <AddMoveForm onBack={() => setCurrentView('start')} />;
+            case 'addAction':
+                return <AddActionForm onBack={() => setCurrentView('start')} />;
             case 'newSequence':
                 return <SequenceBuilder onBack={() => setCurrentView('start')} />;
             case 'sources':
@@ -110,7 +110,7 @@ const Home: React.FC = () => {
                         <SourceSelector />
                     </div>
                 );
-            case 'moveList':
+            case 'actionList':
                 return (
                     <div className="space-y-6">
                         <h2 className="text-2xl font-bold neon-text text-center">{t('home.editTitle')}</h2>
@@ -121,7 +121,7 @@ const Home: React.FC = () => {
                                     className="bg-gray-800 rounded-lg p-3 flex flex-col items-center border border-gray-700 hover:border-neon-green transition cursor-pointer"
                                     onClick={() => {
                                         setSelectedAction(action);
-                                        setCurrentView('editMove');
+                                        setCurrentView('editAction');
                                     }}
                                 >
                                     <div
@@ -135,11 +135,11 @@ const Home: React.FC = () => {
                         </div>
                     </div>
                 );
-            case 'editMove':
+            case 'editAction':
                 return selectedAction ? (
-                    <AddMoveForm move={selectedAction as any} onBack={() => setCurrentView('moveList')} />
+                    <AddActionForm action={selectedAction} onBack={() => setCurrentView('actionList')} />
                 ) : (
-                    <div>{t('common.noMoveSelected')}</div>
+                    <div>{t('common.noActionSelected')}</div>
                 );
             default:
                 return (
@@ -230,8 +230,8 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setCurrentView, isShrunk, 
                 color="blue"
             />
             <NavButton 
-                onClick={() => setCurrentView('addMove')} 
-                active={currentView === 'addMove'} 
+                onClick={() => setCurrentView('addAction')} 
+                active={currentView === 'addAction'} 
                 shrunk={isShrunk} 
                 icon={<Plus size={isShrunk ? 20 : 28} />} 
                 label={t('home.newAction')} 
@@ -247,11 +247,11 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setCurrentView, isShrunk, 
                 isCenter
             />
             <NavButton 
-                onClick={() => setCurrentView('moveList')} 
-                active={currentView === 'moveList'} 
+                onClick={() => setCurrentView('actionList')} 
+                active={currentView === 'actionList'} 
                 shrunk={isShrunk} 
                 icon={<Edit size={isShrunk ? 20 : 28} />} 
-                label={t('home.editMoves')} 
+                label={t('home.editActions')}
                 color="green"
             />
         </nav>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { SequenceNode, FeintBranch, ReactionType, ActiveTarget, Action } from '../../types';
-import { BranchRow } from './BranchRow';
+import { BranchRow } from '../molecules/BranchRow';
 
 interface Props {
     steps: SequenceNode[];
@@ -10,7 +10,7 @@ interface Props {
     onSelectTarget: (target: ActiveTarget) => void;
     onAddBranch: (feintNodeId: string, reactionType: ReactionType) => void;
     isBlock: (prevAction: Action, currentAction: Action) => boolean;
-    collapsedNodes: string[]; // Added to track folding
+    collapsedNodes: string[];
 }
 
 export const BranchContainer: React.FC<Props> = ({
@@ -21,12 +21,13 @@ export const BranchContainer: React.FC<Props> = ({
                                                      onSelectTarget,
                                                      onAddBranch,
                                                      isBlock,
-                                                     collapsedNodes
+                                                     collapsedNodes = [],
                                                  }) => {
     // Group branches by their parent node
     const groupedBranches = steps.reduce((acc, step, index) => {
-        const hasBranches = (step.isFeint || ((step.move as any).tempoOpening ?? 0) > 0) && step.branches && step.branches.length > 0;
-        if (hasBranches) {
+        const hasBranches = step.isFeint && step.branches && step.branches.length > 0;
+        // Only include branches if the parent feint node is not collapsed
+        if (hasBranches && !collapsedNodes.includes(step.id)) {
             acc.push({
                 feintNodeId: step.id,
                 branches: step.branches!,
@@ -39,28 +40,26 @@ export const BranchContainer: React.FC<Props> = ({
     if (groupedBranches.length === 0) return null;
 
     // Approximate width of a card (w-44 = 176px) plus gap (gap-4 = 16px)
-    const STEP_WIDTH = 192; 
+    const CARD_WIDTH = 192; 
 
     return (
         <div
             data-testid="branches-vertical-stack"
-            className="flex flex-col gap-4 mt-6 mb-24" // Decreased gap from 16 to 4
+            className="flex flex-col gap-4 mt-6 mb-24"
         >
             {groupedBranches.map((group) => {
-                const isCollapsed = collapsedNodes.includes(group.feintNodeId);
-                if (isCollapsed) return null; // Hide the entire stack if parent is folded
-
                 return (
                     <div 
                         key={group.feintNodeId} 
-                        className="flex flex-col gap-2" // Bare minimum gap between branches in a group
-                        style={{ marginLeft: `${(group.stepIndex + 1) * STEP_WIDTH}px` }} // Starts 1 card distance to the right
+                        className="flex flex-col gap-2"
+                        style={{ marginLeft: `${(group.stepIndex + 1) * CARD_WIDTH}px` }}
                     >
                         {group.branches.map((branch, bIdx) => (
                             <div 
                                 key={branch.id} 
                                 className="relative"
-                                style={{ marginLeft: `${bIdx * 20}px` }} // Subtle incremental offset
+                                data-branch-container-id={branch.id}
+                                style={{ marginLeft: `${bIdx * 20}px` }}
                             >
                                 <BranchRow
                                     feintNodeId={group.feintNodeId}

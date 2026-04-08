@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface ArrowPath {
+export interface ArrowPath {
     path: string;
     color: string;
     dashed: boolean;
