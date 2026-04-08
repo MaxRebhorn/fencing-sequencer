@@ -152,7 +152,7 @@ const Home: React.FC = () => {
                 );
         }
     };
-
+// Edit for push
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-slate-800 flex flex-col relative overflow-x-hidden">
             {/* Header */}
