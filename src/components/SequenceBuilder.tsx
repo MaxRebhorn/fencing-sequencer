@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { useMoveStore } from '../store/moveStore';
-import { Move, SequenceNode, FeintBranch, ActiveTarget, ReactionType } from '../types';
-import { StartPositionsSelect } from './elements/StartPositionsSelect';
-import { BlockingInfoAlert } from './elements/BlockingInfoAlert';
-import { ActorSelector } from './elements/ActorSelector';
-import { SequenceTree } from './elements/Sequencetree';
-import { MoveGrid } from './elements/MoveGrid';
-import { ActionButtons } from './elements/ActionButtons';
-import { SimulationPlaceholder } from './elements/SimulationPlaceholder';
+import { useAllActions } from '../store/moveStore';
+import { useSourceStore } from '../store/sourceStore';
+import { Action } from '../types/action';
+import { SequenceNode, FeintBranch, ActiveTarget, ReactionType } from '../types/sequence';
+import { StartPositionsSelect } from './molecules/StartPositionsSelect';
+import { BlockingInfoAlert } from './molecules/BlockingInfoAlert';
+import { ActorSelector } from './molecules/ActorSelector';
+import { SequenceTree } from './organisms/SequenceTree';
+import { ActionGrid } from './molecules/ActionGrid';
+import { ActionButtons } from './molecules/ActionButtons';
+import { SimulationPlaceholder } from './organisms/SimulationPlaceholder';
 import { useTranslation } from 'react-i18next';
 import * as Logic from '../utils/sequenceLogic';
 
@@ -19,8 +21,27 @@ interface Props {
 }
 
 export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
-    const { moves } = useMoveStore();
+    const allActions = useAllActions();
+    const { activeSourceId, additionalSourceIds, availableSources } = useSourceStore();
     const { t } = useTranslation();
+
+    // Filter actions based on active source and additional sources
+    const filteredActions = useMemo(() => {
+        const sourceIds = [activeSourceId, ...additionalSourceIds];
+        const allowedActionIds = new Set<string>();
+        
+        availableSources.forEach(s => {
+            if (sourceIds.includes(s.id)) {
+                s.actionIds.forEach(id => allowedActionIds.add(id));
+            }
+        });
+        
+        // Always allow system actions like 'stay_action'
+        allowedActionIds.add('stay_action');
+
+        // Ensure we only return actions that actually exist in allActions
+        return allActions.filter(a => a && allowedActionIds.has(a.id));
+    }, [allActions, activeSourceId, additionalSourceIds, availableSources]);
 
     // ── Persistent state ───────────────────────────────────────────────────────
     const [steps, setSteps] = useState<SequenceNode[]>(() => {
@@ -28,14 +49,27 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
             const saved = localStorage.getItem('sequence');
             if (saved) {
                 const parsed = JSON.parse(saved);
-                if (parsed.steps) return parsed.steps;
+                if (parsed.steps) {
+                    // Data Migration: map legacy 'move' property to new 'action' property
+                    const mapLegacySteps = (nodes: any[]): SequenceNode[] => {
+                        return nodes.map(node => ({
+                            ...node,
+                            action: node.action || node.move,
+                            branches: node.branches ? node.branches.map((b: any) => ({
+                                ...b,
+                                steps: mapLegacySteps(b.steps || [])
+                            })) : undefined
+                        })).filter(node => !!node.action); // Filter out nodes that failed migration
+                    };
+                    return mapLegacySteps(parsed.steps);
+                }
             }
         } catch (_) {}
         return [];
     });
 
-    const [playerStart, setPlayerStart] = useState('3-Parade');
-    const [opponentStart, setOpponentStart] = useState('3-Parade');
+    const [playerStart, setPlayerStart] = useState('sabre_parry_3');
+    const [opponentStart, setOpponentStart] = useState('sabre_parry_3');
 
     // ── UI state ───────────────────────────────────────────────────────────────
     const [selectedActor, setSelectedActor] = useState<'player' | 'opponent'>('player');
@@ -50,25 +84,25 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
     );
 
     // ── Compute suggestions (memoized) ─────────────────────────────────────────
-    const suggestedMoveIds = useMemo(() => {
+    const suggestedActionIds = useMemo(() => {
         const isAttackInTempoEmpty =
             activeTarget.type === 'branch' &&
             steps.some(s =>
-                s.id === activeTarget.feintNodeId &&
+                s.id === (activeTarget as any).feintNodeId &&
                 s.branches?.some(b =>
-                    b.id === activeTarget.branchId &&
+                    b.id === (activeTarget as any).branchId &&
                     b.reactionType === 'attackInTempo' &&
                     b.steps.length === 0
                 )
             );
 
         if (isAttackInTempoEmpty) {
-            return Logic.suggestAttacksForAttackInTempo(activeTarget, steps, moves, positionMap, playerStart, opponentStart);
+            return Logic.suggestAttacksForAttackInTempo(activeTarget, steps, filteredActions, positionMap, playerStart, opponentStart);
         } else {
             const ctx = Logic.resolveContextSteps(activeTarget, steps);
-            return Logic.analyzeAndSuggestMoves(ctx, selectedActor, moves, positionMap, playerStart, opponentStart);
+            return Logic.analyzeAndSuggestMoves(ctx, selectedActor, filteredActions, positionMap, playerStart, opponentStart);
         }
-    }, [activeTarget, steps, selectedActor, moves, positionMap, playerStart, opponentStart]);
+    }, [activeTarget, steps, selectedActor, filteredActions, positionMap, playerStart, opponentStart]);
 
     // ── Auto‑switch effect ────────────────────────────────────────────────────
     useEffect(() => {
@@ -86,32 +120,33 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
         const ctx = Logic.resolveContextSteps(activeTarget, steps);
         if (ctx.length === 0) return null;
         const lastStep = ctx[ctx.length - 1];
-        if (lastStep.actor === selectedActor || lastStep.move.type !== 'attack') return null;
-        const attack = lastStep.move;
-        const blockingParries = moves.filter(
-            (m) => m.type === 'parry' && m.blocks?.includes(attack.id)
+        if (!lastStep || !lastStep.action || lastStep.actor === selectedActor || lastStep.action.type !== 'attack') return null;
+        const attack = lastStep.action;
+        const blockingParries = filteredActions.filter(
+            (m) => (m.type === 'parry' || m.type === 'attack') && m.blocks?.includes(attack.id)
         );
-        const easiestIds: string[] = attack.easiestParries || [];
-        const hardestIds: string[] = attack.hardestParries || [];
+        const easiestIds: string[] = attack.fastestParries || [];
+        const hardestIds: string[] = attack.slowestParries || [];
         const easiest = blockingParries.filter((p) => easiestIds.includes(p.id));
         const hardest = blockingParries.filter((p) => hardestIds.includes(p.id));
         const others = blockingParries.filter((p) => !easiestIds.includes(p.id) && !hardestIds.includes(p.id));
-        easiest.sort((a, b) => easiestIds.indexOf(a.id) - easiestIds.indexOf(b.id));
-        hardest.sort((a, b) => hardestIds.indexOf(a.id) - hardestIds.indexOf(b.id));
+        
         const sorted = [...easiest, ...others, ...hardest];
         return { attack, parries: sorted, hasBlockingParries: sorted.length > 0 };
     };
 
-    const getSuggestionRank = (moveId: string): number | null => {
-        const idx = suggestedMoveIds.indexOf(moveId);
+    const getSuggestionRank = (actionId: string): number | null => {
+        const idx = suggestedActionIds.indexOf(actionId);
         return idx !== -1 ? idx : null;
     };
 
     // ── Mutations ──────────────────────────────────────────────────────────────
-    const addStep = (move: Move) => {
+    const addStep = (action: Action) => {
+        if (!action) return;
+        
         const newNode: SequenceNode = {
             id: Date.now().toString(),
-            move,
+            action,
             actor: selectedActor,
         };
 
@@ -182,13 +217,13 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                 'attackInTempo': 'Angriff ins Tempo',
             };
 
-            const stayMove: Move = {
-                id: 'bleiben',
-                name: 'Bleiben',
+            const stayAction = filteredActions.find(a => a.id === 'stay_action') || {
+                id: 'stay_action',
+                sourceId: 'System',
+                sourceNames: { System: 'Stay' },
                 type: 'stay',
-                svgContent:
-                    '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2"><circle cx="20" cy="20" r="14"/><line x1="20" y1="12" x2="20" y2="28"/><line x1="12" y1="20" x2="28" y2="20"/></svg>',
-            };
+                svgContent: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2"><circle cx="20" cy="20" r="14"/><line x1="20" y1="12" x2="20" y2="28"/><line x1="12" y1="20" x2="28" y2="20"/></svg>',
+            } as Action;
 
             const newBranch: FeintBranch = {
                 id: `${feintNodeId}-${reactionType}-${Date.now()}`,
@@ -196,7 +231,7 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                 label: labels[reactionType],
                 steps:
                     reactionType === 'no-reaction'
-                        ? [{ id: `stay-${Date.now()}`, move: stayMove, actor: feintNode.actor === 'player' ? 'opponent' : 'player' }]
+                        ? [{ id: `stay-${Date.now()}`, action: stayAction, actor: feintNode.actor === 'player' ? 'opponent' : 'player' }]
                         : [],
             };
 
@@ -210,7 +245,7 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                 setActiveTarget({ type: 'branch', feintNodeId, branchId: newBranchId });
             }
         }, 0);
-    }, []);
+    }, [filteredActions]);
 
     const setPositionOverride = (nodeId: string, position: string | undefined) => {
         setSteps((prev) => {
@@ -233,9 +268,9 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
     const blockingInfo = getBlockingParriesInfo();
 
     // ── Available parry names for position picker ──────────────────────────────
-    const parryNames = moves
-        .filter((m) => m.type === 'parry')
-        .map((m) => m.name);
+    const availablePositionOptions = filteredActions
+        .filter((m) => m && (m.type === 'parry' || m.type === 'stay'))
+        .map((m) => ({ id: m.id, name: Logic.getActionName(m, activeSourceId) }));
 
     // ── Render ─────────────────────────────────────────────────────────────────
     return (
@@ -288,7 +323,7 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                 steps={steps}
                 activeTarget={activeTarget}
                 positionMap={positionMap}
-                availablePositions={parryNames}
+                availablePositions={availablePositionOptions.map(o => o.name)}
                 onRemoveStep={removeStep}
                 onRemoveStepFromBranch={removeStepFromBranch}
                 onToggleFeint={toggleFeint}
@@ -304,16 +339,15 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                     {nextActorHint && autoSwitch && (
                         <span className="text-cyan-600 text-xs">({nextActorHint})</span>
                     )}
-                    {suggestedMoveIds.length > 0 && (
+                    {suggestedActionIds.length > 0 && (
                         <span className="ml-auto text-green-400 text-xs">
-                            ✨ {suggestedMoveIds.length} empfohlen
+                            ✨ {suggestedActionIds.length} empfohlen
                         </span>
                     )}
                 </h2>
-                <MoveGrid
-                    moves={moves}
-                    suggestedMoveIds={suggestedMoveIds}
-                    onMoveClick={addStep}
+                <ActionGrid
+                    actions={filteredActions}
+                    onActionClick={addStep}
                     getSuggestionRank={getSuggestionRank}
                 />
             </div>

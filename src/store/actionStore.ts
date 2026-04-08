@@ -1,15 +1,13 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Action, ActionType } from '../types';
+import { Action } from '../types';
 
-interface MoveStore {
+interface ActionStore {
     actions: Action[];
     addAction: (action: Action) => void;
     removeAction: (id: string) => void;
     updateAction: (id: string, action: Partial<Action>) => void;
     getActionById: (id: string) => Action | undefined;
-    getActionsByType: (type: ActionType) => Action[];
 }
 
 const cutSymbols = {
@@ -35,194 +33,141 @@ const parrySymbols = {
     hanging: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="none" stroke="#00ff9d" stroke-width="2"/><line x1="20" y1="30" x2="80" y2="70" stroke="#00ff9d" stroke-width="5"/><circle cx="20" cy="30" r="4" fill="#00ff9d"/><text x="50" y="55" font-size="20" text-anchor="middle" fill="#00ff9d" font-weight="bold">H</text></svg>`
 };
 
-const initialActions: Action[] = [
+/** Centralized list of all built-in actions */
+export const DEFAULT_ACTIONS: Action[] = [
     {
         id: 'sabre_cut_1', sourceId: 'System',
-        sourceNames: {
-            Angelo: 'Cut 1',
-            Waite: 'Cut 1',
-            Roworth: 'Cut 1',
-            Radaelli: 'Direct cut to head (right)',
-            Barbasetti: 'Cut to head (right)',
-            Hutton: 'Downward diagonal right → left',
-            Meyer: 'Wrath Cut (Zornhau) - right side'  // ADD THIS
-        },
-        type: 'attack', svgContent: cutSymbols.cut1, name: 'Cut 1 (Diagonal Outside)',
+        sourceNames: { System: 'Cut 1 (Diagonal Outside)', Angelo: 'Cut 1', Waite: 'Cut 1', Roworth: 'Cut 1', Radaelli: 'Direct cut to head (right)', Barbasetti: 'Cut to head (right)', Hutton: 'Downward diagonal right → left' },
+        type: 'attack', svgContent: cutSymbols.cut1,
         description: 'Downward diagonal from the outside (high) aimed at the cheek.'
     },
-
-// Update sabre_cut_2 - Add Meyer: Wrath Cut (left side)
     {
         id: 'sabre_cut_2', sourceId: 'System',
-        sourceNames: {
-            Angelo: 'Cut 2',
-            Waite: 'Cut 2',
-            Roworth: 'Cut 2',
-            Radaelli: 'Direct cut to head (left)',
-            Barbasetti: 'Cut to head (left)',
-            Hutton: 'Downward diagonal left → right',
-            Meyer: 'Wrath Cut (Zornhau) - left side'  // ADD THIS
-        },
-        type: 'attack', svgContent: cutSymbols.cut2, name: 'Cut 2 (Diagonal Inside)',
+        sourceNames: { System: 'Cut 2 (Diagonal Inside)', Angelo: 'Cut 2', Waite: 'Cut 2', Roworth: 'Cut 2', Radaelli: 'Direct cut to head (left)', Barbasetti: 'Cut to head (left)', Hutton: 'Downward diagonal left → right' },
+        type: 'attack', svgContent: cutSymbols.cut2,
         description: 'Downward diagonal from the inside (high) aimed at the cheek.'
     },
-
-// Update sabre_cut_3 - Add Meyer: Middle Cut (right to left)
     {
         id: 'sabre_cut_3', sourceId: 'System',
-        sourceNames: {
-            Angelo: 'Cut 3',
-            Waite: 'Cut 3',
-            Roworth: 'Cut 3',
-            Radaelli: 'Direct cut to flank (right)',
-            Barbasetti: 'Cut to flank (right)',
-            Hutton: 'Horizontal cut (right → left)',
-            Meyer: 'Middle Cut (Mittelhau) - right to left'  // ADD THIS
-        },
-        type: 'attack', svgContent: cutSymbols.cut3, name: 'Cut 3 (Horizontal Outside)',
+        sourceNames: { System: 'Cut 3 (Horizontal Outside)', Angelo: 'Cut 3', Waite: 'Cut 3', Roworth: 'Cut 3', Radaelli: 'Direct cut to flank (right)', Barbasetti: 'Cut to flank (right)', Hutton: 'Horizontal cut (right → left)' },
+        type: 'attack', svgContent: cutSymbols.cut3,
         description: 'Horizontal or slightly upward diagonal from the outside aimed at the side.'
     },
-
-// Update sabre_cut_4 - Add Meyer: Middle Cut (left to right)
     {
         id: 'sabre_cut_4', sourceId: 'System',
-        sourceNames: {
-            Angelo: 'Cut 4',
-            Waite: 'Cut 4',
-            Roworth: 'Cut 4',
-            Radaelli: 'Direct cut to flank (left)',
-            Barbasetti: 'Cut to flank (left)',
-            Hutton: 'Horizontal cut (left → right)',
-            Meyer: 'Middle Cut (Mittelhau) - left to right'  // ADD THIS
-        },
-        type: 'attack', svgContent: cutSymbols.cut4, name: 'Cut 4 (Horizontal Inside)',
+        sourceNames: { System: 'Cut 4 (Horizontal Inside)', Angelo: 'Cut 4', Waite: 'Cut 4', Roworth: 'Cut 4', Radaelli: 'Direct cut to flank (left)', Barbasetti: 'Cut to flank (left)', Hutton: 'Horizontal cut (left → right)' },
+        type: 'attack', svgContent: cutSymbols.cut4,
         description: 'Horizontal or slightly upward diagonal from the inside aimed at the side.'
     },
-
-// Update sabre_cut_5 - Add Meyer: High Cut
     {
         id: 'sabre_cut_5', sourceId: 'System',
-        sourceNames: {
-            Angelo: 'Cut 5',
-            Waite: 'Cut 5',
-            Roworth: 'Cut 5',
-            Barbasetti: 'Cut to face',
-            Hutton: 'Downward cut (head)',
-            Meyer: 'High Cut (Oberhau)'  // ADD THIS
-        },
-        type: 'attack', svgContent: cutSymbols.cut5, name: 'Cut 5 (Vertical Down)',
+        sourceNames: { System: 'Cut 5 (Vertical Down)', Angelo: 'Cut 5', Waite: 'Cut 5', Roworth: 'Cut 5', Barbasetti: 'Cut to face', Hutton: 'Downward cut (head)' },
+        type: 'attack', svgContent: cutSymbols.cut5,
         description: 'Vertical downward cut aimed at the top of the head.'
     },
-
-// Update sabre_cut_6 - Add Meyer: Low Cut (right side / rising outside)
     {
         id: 'sabre_cut_6', sourceId: 'System',
-        sourceNames: {
-            Angelo: 'Cut 6',
-            Waite: 'Cut 6',
-            Roworth: 'Cut 6 (low outside)',
-            Hutton: 'Rising cut (right)',
-            Meyer: 'Low Cut (Unterhau) - right side'  // ADD THIS
-        },
-        type: 'attack', svgContent: cutSymbols.cut6, name: 'Cut 6 (Rising Outside)',
+        sourceNames: { System: 'Cut 6 (Rising Outside)', Angelo: 'Cut 6', Waite: 'Cut 6', Roworth: 'Cut 6 (low outside)', Hutton: 'Rising cut (right)' },
+        type: 'attack', svgContent: cutSymbols.cut6,
         description: 'Upward diagonal from the outside.'
     },
-
-// Update sabre_cut_7 - Add Meyer: Low Cut (left side / rising inside)
     {
         id: 'sabre_cut_7', sourceId: 'System',
-        sourceNames: {
-            Angelo: 'Cut 7',
-            Waite: 'Cut 7',
-            Roworth: 'Cut 7 (low inside)',
-            Hutton: 'Rising cut (left)',
-            Meyer: 'Low Cut (Unterhau) - left side'  // ADD THIS
-        },
-        type: 'attack', svgContent: cutSymbols.cut7, name: 'Cut 7 (Rising Inside)',
+        sourceNames: { System: 'Cut 7 (Rising Inside)', Angelo: 'Cut 7', Waite: 'Cut 7', Roworth: 'Cut 7 (low inside)', Hutton: 'Rising cut (left)' },
+        type: 'attack', svgContent: cutSymbols.cut7,
         description: 'Upward diagonal from the inside.'
     },
     {
         id: 'sabre_molinello_head_right', sourceId: 'Radaelli',
         sourceNames: { Radaelli: 'Molinello to head (right)', Barbasetti: 'Circular cut to head (right)', Hutton: 'Moulinet head' },
-        type: 'attack', svgContent: cutSymbols.molinello, name: 'Molinello Head Right',
+        type: 'attack', svgContent: cutSymbols.molinello,
         description: 'A circular molinello cut delivered to the right side of the adversary\'s head.'
     },
     {
         id: 'sabre_thrust', sourceId: 'System',
-        sourceNames: { Radaelli: 'Thrust', Barbasetti: 'Thrust', Hutton: 'Thrust', Angelo: 'Thrust', Waite: 'Thrust' },
-        type: 'attack', svgContent: cutSymbols.thrust, name: 'Thrust',
+        sourceNames: { System: 'Thrust', Radaelli: 'Thrust', Barbasetti: 'Thrust', Hutton: 'Thrust', Angelo: 'Thrust', Waite: 'Thrust' },
+        type: 'attack', svgContent: cutSymbols.thrust,
         description: 'A direct thrust with the point of the sabre.'
     },
     {
         id: 'sabre_parry_1', sourceId: 'System',
-        sourceNames: { Angelo: 'Prime', Waite: 'Prime', Radaelli: 'Prima', Barbasetti: 'Prima', Hutton: 'Prime' },
-        type: 'parry', svgContent: parrySymbols.prime, blocks: ['sabre_cut_3', 'sabre_cut_7'], name: 'Prime',
+        sourceNames: { System: 'Prime', Angelo: 'Prime', Waite: 'Prime', Radaelli: 'Prima', Barbasetti: 'Prima', Hutton: 'Prime' },
+        type: 'parry', svgContent: parrySymbols.prime, blocks: ['sabre_cut_3', 'sabre_cut_7'],
         description: 'First parry protecting the low inside line.'
     },
     {
         id: 'sabre_parry_2', sourceId: 'System',
-        sourceNames: { Angelo: 'Second', Waite: 'Second', Radaelli: 'Seconda', Barbasetti: 'Seconda', Hutton: 'Second' },
-        type: 'parry', svgContent: parrySymbols.seconde, blocks: ['sabre_cut_4', 'sabre_cut_6'], name: 'Second',
+        sourceNames: { System: 'Second', Angelo: 'Second', Waite: 'Second', Radaelli: 'Seconda', Barbasetti: 'Seconda', Hutton: 'Second' },
+        type: 'parry', svgContent: parrySymbols.seconde, blocks: ['sabre_cut_4', 'sabre_cut_6'],
         description: 'Second parry protecting the low outside line.'
     },
     {
         id: 'sabre_parry_3', sourceId: 'System',
-        sourceNames: { Angelo: 'Tierce', Waite: 'Tierce', Radaelli: 'Terza', Barbasetti: 'Terza', Hutton: 'Tierce', Roworth: 'Outside guard' },
-        type: 'parry', svgContent: parrySymbols.tierce, blocks: ['sabre_cut_1', 'sabre_cut_3'], name: 'Tierce',
+        sourceNames: { System: 'Tierce', Angelo: 'Tierce', Waite: 'Tierce', Radaelli: 'Terza', Barbasetti: 'Terza', Hutton: 'Tierce', Roworth: 'Outside guard' },
+        type: 'parry', svgContent: parrySymbols.tierce, blocks: ['sabre_cut_1', 'sabre_cut_3'],
         description: 'Third parry protecting the outside line (mid/high).'
     },
     {
         id: 'sabre_parry_4', sourceId: 'System',
-        sourceNames: { Angelo: 'Quarte', Waite: 'Quarte', Radaelli: 'Quarta', Barbasetti: 'Quarta', Hutton: 'Quarte', Roworth: 'Inside guard' },
-        type: 'parry', svgContent: parrySymbols.quarte, blocks: ['sabre_cut_2', 'sabre_cut_4'], name: 'Quarte',
+        sourceNames: { System: 'Quarte', Angelo: 'Quarte', Waite: 'Quarte', Radaelli: 'Quarta', Barbasetti: 'Quarta', Hutton: 'Quarte', Roworth: 'Inside guard' },
+        type: 'parry', svgContent: parrySymbols.quarte, blocks: ['sabre_cut_2', 'sabre_cut_4'],
         description: 'Fourth parry protecting the inside line (mid/high).'
     },
     {
         id: 'sabre_parry_5', sourceId: 'System',
-        sourceNames: { Angelo: 'Quinte', Waite: 'Quinte', Radaelli: 'Quinta', Barbasetti: 'Quinta', Hutton: 'Head parry' },
-        type: 'parry', svgContent: parrySymbols.quinte, blocks: ['sabre_cut_5'], name: 'Quinte',
+        sourceNames: { System: 'Quinte', Angelo: 'Quinte', Waite: 'Quinte', Radaelli: 'Quinta', Barbasetti: 'Quinta', Hutton: 'Head parry' },
+        type: 'parry', svgContent: parrySymbols.quinte, blocks: ['sabre_cut_5'],
         description: 'Fifth parry protecting the head from vertical downward cuts.'
     },
     {
         id: 'sabre_parry_6', sourceId: 'System',
-        sourceNames: { Angelo: 'Sixte', Waite: 'Sixte', Radaelli: 'Sesta', Barbasetti: 'Sesta' },
-        type: 'parry', svgContent: parrySymbols.sixte, blocks: ['sabre_cut_1'], name: 'Sixte',
+        sourceNames: { System: 'Sixte', Angelo: 'Sixte', Waite: 'Sixte', Radaelli: 'Sesta', Barbasetti: 'Sesta' },
+        type: 'parry', svgContent: parrySymbols.sixte, blocks: ['sabre_cut_1'],
         description: 'Sixth parry protecting the high inside line.'
     },
     {
         id: 'sabre_parry_7', sourceId: 'System',
-        sourceNames: { Radaelli: 'Settima', Barbasetti: 'Settima' },
-        type: 'parry', svgContent: parrySymbols.septime, blocks: ['sabre_cut_5', 'sabre_cut_7'], name: 'Settima',
+        sourceNames: { System: 'Settima', Radaelli: 'Settima', Barbasetti: 'Settima' },
+        type: 'parry', svgContent: parrySymbols.septime, blocks: ['sabre_cut_5', 'sabre_cut_7'],
         description: 'Seventh parry, often a hanging or situational defense.'
     },
     {
         id: 'sabre_hanging_guard', sourceId: 'Roworth',
-        sourceNames: { Roworth: 'Hanging guard', Hutton: 'Hanging guard' },
-        type: 'parry', svgContent: parrySymbols.hanging, blocks: ['sabre_cut_5'], name: 'Hanging Guard',
+        sourceNames: { System: 'Hanging Guard', Roworth: 'Hanging guard', Hutton: 'Hanging guard' },
+        type: 'parry', svgContent: parrySymbols.hanging, blocks: ['sabre_cut_5'],
         description: 'A diagonal protective guard that covers the head and upper body.'
     },
     {
         id: 'stay_action', sourceId: 'System',
         sourceNames: { System: 'Stay', Meyer: 'Bleiben' },
-        type: 'stay', svgContent: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2"><circle cx="20" cy="20" r="14"/><line x1="20" y1="12" x2="20" y2="28"/><line x1="12" y1="20" x2="28" y2="20"/></svg>',
-        name: 'Stay',
+        type: 'stay', svgContent: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2"><circle cx="20" cy="20" r="14"/><line x1="20" y1="12" x2="20" y2="28"/><line x1="12" y1="20" x2="28" y2="20"/></svg>`,
         description: 'Maintain the current position or wait for an opportunity.'
     }
 ];
 
-export const useMoveStore = create<MoveStore>()(
+export const useActionStore = create<ActionStore>()(
     persist(
         (set, get) => ({
-            actions: initialActions,
+            actions: [],
             addAction: (action) => set((state) => ({ actions: [...state.actions, action] })),
             removeAction: (id) => set((state) => ({ actions: state.actions.filter((a) => a.id !== id) })),
             updateAction: (id, updatedAction) => set((state) => ({
                 actions: state.actions.map((a) => (a.id === id ? { ...a, ...updatedAction } : a)),
             })),
-            getActionById: (id) => get().actions.find((a) => a.id === id),
-            getActionsByType: (type) => get().actions.filter((a) => a.type === type),
+            getActionById: (id) => {
+                const userAction = get().actions.find((a) => a.id === id);
+                if (userAction) return userAction;
+                return DEFAULT_ACTIONS.find(a => a.id === id);
+            },
         }),
-        { name: 'action-storage' }
+        {
+            name: 'action-storage',
+            version: 1
+        }
     )
 );
 
+export const useAllActions = () => {
+    const userActions = useActionStore(state => state.actions);
+    return [...DEFAULT_ACTIONS, ...userActions];
+};

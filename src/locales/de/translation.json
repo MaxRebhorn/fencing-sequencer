@@ -62,11 +62,14 @@
   "home": {
     "welcome": "Willkommen beim Fencing Combo Editor",
     "subtitle": "Erstelle deine eigenen Fecht-Sequenzen mit realistischen SVG-Animationen",
-    "newAction": "Neue Aktion",
-    "newSequence": "Neue Sequenz",
-    "editMoves": "Bewegungen bearbeiten",
+    "newAction": "Aktion",
+    "newSequence": "Sequenz",
+    "editActions": "Bearbeiten",
     "editTitle": "Vorhandene Bewegungen bearbeiten",
     "backToStart": "← Zurück zum Start"
+  },
+  "sources": {
+    "title": "Quellen"
   },
   "header": {
     "title": "Fencing Combo Editor"

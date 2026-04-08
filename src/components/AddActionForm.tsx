@@ -1,16 +1,13 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
-import { useMoveStore } from '../store/moveStore';
+import { useActionStore, useAllActions } from '../store/actionStore';
 import { useSourceStore } from '../store/sourceStore';
-import { Action } from '../types';
+import { Action } from '../types/action';
 import { v4 as uuidv4 } from 'uuid';
-import { SimpleSVGEditor } from './elements/SimpleSvgEditor';
-import { actionToMarkdown, getGithubIssueUrl } from '../utils/githubContributions';
-import { Copy, Check, Info, Globe, ExternalLink } from 'lucide-react';
+import { SimpleSvgEditor } from './organisms/SimpleSvgEditor';
 
 interface Props {
     onBack: () => void;
-    move?: Action;
+    action?: Action;
 }
 
 interface RankedSelection {
@@ -18,18 +15,15 @@ interface RankedSelection {
     rank: number;
 }
 
-export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
-    const { actions, addAction, updateAction } = useMoveStore();
+export const AddActionForm: React.FC<Props> = ({ onBack, action }) => {
+    const { addAction, updateAction } = useActionStore();
+    const allActions = useAllActions();
     const { activeSourceId } = useSourceStore();
 
-    const [type, setType] = useState<'attack' | 'parry'>(move?.type || 'parry');
-    const [name, setName] = useState(move?.name || '');
-    const [description, setDescription] = useState(move?.description || '');
-    const [selectedSVG, setSelectedSVG] = useState<string | null>(move?.svgContent || null);
-
-    const [isContributing, setIsContributing] = useState(false);
-    const [contributionComment, setContributionComment] = useState('');
-    const [copied, setCopied] = useState(false);
+    const [type, setType] = useState<'attack' | 'parry'>(action?.type || 'parry');
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState(action?.description || '');
+    const [selectedSVG, setSelectedSVG] = useState<string | null>(action?.svgContent || null);
 
     const [defendedAttacks, setDefendedAttacks] = useState<RankedSelection[]>([]);
     const [fastestAttacks, setFastestAttacks] = useState<RankedSelection[]>([]);
@@ -37,67 +31,46 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
     const [parriesFastest, setParriesFastest] = useState<RankedSelection[]>([]);
     const [parriesHardest, setParriesHardest] = useState<RankedSelection[]>([]);
 
-    const currentActionData = useMemo((): Action => ({
-        id: move?.id || uuidv4(),
-        sourceId: move?.sourceId || 'Custom',
-        sourceNames: move?.sourceNames || { [activeSourceId]: name, 'Custom': name },
-        name,
-        type,
-        description,
-        svgContent: selectedSVG || '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="#ff4bd0" fill="none"/></svg>',
-        blocks: type === 'parry'
-            ? defendedAttacks.map(s => s.id)
-            : parriesBlocking.map(s => s.id),
-        easiestAttacks: type === 'parry'
-            ? fastestAttacks.map(s => s.id)
-            : undefined,
-        fastestParries: type === 'attack'
-            ? parriesFastest.map(s => s.id)
-            : undefined,
-        slowestParries: type === 'attack'
-            ? parriesHardest.map(s => s.id)
-            : undefined,
-    }), [move, activeSourceId, name, type, description, selectedSVG, defendedAttacks, fastestAttacks, parriesBlocking, parriesFastest, parriesHardest]);
+    useEffect(() => {
+        if (action) {
+            setName(action.sourceNames[activeSourceId] || action.sourceNames['System'] || '');
+        }
+    }, [action, activeSourceId]);
 
-    const previewMarkdown = useMemo(() => {
-        return actionToMarkdown(currentActionData, contributionComment);
-    }, [currentActionData, contributionComment]);
-
-    const isCommentValid = contributionComment.trim().length >= 10;
-
+    // Get source-mapped display names for all actions
     const attackActionsMapped = useMemo(() => {
-        return actions
+        return allActions
             .filter((a) => a.type === 'attack')
             .map(a => ({
                 ...a,
-                displayName: a.sourceNames[activeSourceId] || a.name
+                displayName: a.sourceNames[activeSourceId] || a.sourceNames['System'] || a.id
             }));
-    }, [actions, activeSourceId]);
+    }, [allActions, activeSourceId]);
 
     const parryActionsMapped = useMemo(() => {
-        return actions
+        return allActions
             .filter((a) => a.type === 'parry')
             .map(a => ({
                 ...a,
-                displayName: a.sourceNames[activeSourceId] || a.name
+                displayName: a.sourceNames[activeSourceId] || a.sourceNames['System'] || a.id
             }));
-    }, [actions, activeSourceId]);
+    }, [allActions, activeSourceId]);
 
     const toRanked = (ids: string[]): RankedSelection[] =>
         ids.map((id, idx) => ({ id, rank: idx + 1 }));
 
     useEffect(() => {
-        if (move) {
-            if (move.type === 'parry') {
-                setDefendedAttacks(toRanked(move.blocks || []));
-                setFastestAttacks(toRanked(move.easiestAttacks || []));
-            } else if (move.type === 'attack') {
-                setParriesBlocking(toRanked(move.blocks || []));
-                setParriesFastest(toRanked(move.fastestParries || []));
-                setParriesHardest(toRanked(move.slowestParries || []));
+        if (action) {
+            if (action.type === 'parry') {
+                setDefendedAttacks(toRanked(action.blocks || []));
+                setFastestAttacks(toRanked(action.easiestAttacks || []));
+            } else if (action.type === 'attack') {
+                setParriesBlocking(toRanked(action.blocks || []));
+                setParriesFastest(toRanked(action.fastestParries || []));
+                setParriesHardest(toRanked(action.slowestParries || []));
             }
         }
-    }, [move]);
+    }, [action]);
 
     const handleSelectRanked = (
         currentList: RankedSelection[],
@@ -117,39 +90,57 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
         return sel ? sel.rank : null;
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = () => {
         if (!name.trim()) return;
 
-        if (move) {
-            updateAction(move.id, currentActionData);
+        const newId = action?.id || uuidv4();
+
+        const actionData: Action = {
+            id: newId,
+            sourceId: action?.sourceId || 'Custom',
+            sourceNames: { ...(action?.sourceNames || {}), [activeSourceId]: name },
+            type,
+            description,
+            svgContent: selectedSVG || '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="#ff4bd0" fill="none"/></svg>',
+            blocks: type === 'parry'
+                ? defendedAttacks.map(s => s.id)
+                : parriesBlocking.map(s => s.id),
+            easiestAttacks: type === 'parry'
+                ? fastestAttacks.map(s => s.id)
+                : undefined,
+            fastestParries: type === 'attack'
+                ? parriesFastest.map(s => s.id)
+                : undefined,
+            slowestParries: type === 'attack'
+                ? parriesHardest.map(s => s.id)
+                : undefined,
+        };
+
+        if (action) {
+            updateAction(action.id, actionData);
         } else {
-            addAction(currentActionData);
+            addAction(actionData);
         }
 
         if (type === 'attack') {
-            const allParries = useMoveStore.getState().actions.filter(a => a.type === 'parry');
+            const allParries = useActionStore.getState().actions.filter(a => a.type === 'parry');
             const selectedParryIds = parriesBlocking.map(s => s.id);
 
             allParries.forEach(parry => {
                 const shouldBlock = selectedParryIds.includes(parry.id);
-                const currentlyBlocks = parry.blocks?.includes(currentActionData.id) || false;
+                const currentlyBlocks = parry.blocks?.includes(newId) || false;
 
                 if (shouldBlock && !currentlyBlocks) {
-                    const newBlocks = [...(parry.blocks || []), currentActionData.id];
+                    const newBlocks = [...(parry.blocks || []), newId];
                     updateAction(parry.id, { blocks: newBlocks });
                 } else if (!shouldBlock && currentlyBlocks) {
-                    const newBlocks = (parry.blocks || []).filter(id => id !== currentActionData.id);
+                    const newBlocks = (parry.blocks || []).filter(id => id !== newId);
                     updateAction(parry.id, { blocks: newBlocks });
                 }
             });
         }
-        onBack();
-    };
 
-    const handleCopy = () => {
-        navigator.clipboard.writeText(previewMarkdown);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        onBack();
     };
 
     const borderStyle = {
@@ -200,7 +191,7 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
             </button>
 
             <h1 className="text-2xl font-bold neon-text uppercase tracking-widest text-center">
-                {move ? 'Edit Action' : 'Add New Action'}
+                {action ? 'Edit Action' : 'Add New Action'}
             </h1>
 
             <div className="flex justify-center space-x-4 mb-4">
@@ -228,8 +219,8 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                    <SimpleSVGEditor
-                        key={move?.id || 'new'}
+                    <SimpleSvgEditor
+                        key={action?.id || 'new'}
                         mode={type}
                         label={name || (type === 'attack' ? 'A' : 'P')}
                         onChange={(svg) => setSelectedSVG(svg)}
@@ -245,7 +236,6 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
                             placeholder="Primary Name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            data-testid="action-name-input"
                             className={`w-full p-2 rounded bg-gray-800 text-white placeholder-gray-600 focus:outline-none focus:ring-1 border border-gray-700`}
                             style={borderStyle}
                         />
@@ -257,100 +247,6 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
                             Currently showing names for: <span className="text-neon-blue font-bold uppercase">{activeSourceId}</span>
                         </p>
                         <p className="text-[10px] text-gray-500 mt-2">Mappings and source assignments are managed on the Sources page.</p>
-                    </div>
-
-                    <div className="pt-4 border-t border-gray-800 space-y-4">
-                        <h4 className="text-[10px] uppercase font-black text-gray-500 tracking-widest flex items-center gap-2">
-                            <Globe size={14} className="text-neon-blue" /> Contribution
-                        </h4>
-
-                        <label className="flex items-center gap-3 cursor-pointer group">
-                            <input
-                                type="checkbox"
-                                checked={isContributing}
-                                onChange={(e) => setIsContributing(e.target.checked)}
-                                data-testid="global-propose-checkbox"
-                                className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-neon-blue focus:ring-neon-blue"
-                            />
-                            <span className="text-[10px] uppercase font-black text-gray-400 group-hover:text-neon-blue transition">
-                                Propose to Global Library
-                            </span>
-                        </label>
-
-                        {isContributing && (
-                            <div className="pl-7 space-y-4 animate-in slide-in-from-top-2">
-                                <div className="animate-in fade-in slide-in-from-top-2">
-                                    <label className="block text-[8px] uppercase font-black text-gray-500 mb-1 tracking-widest">
-                                        Why are you adding/changing this? <span className="text-neon-pink">*</span>
-                                    </label>
-                                    <textarea
-                                        value={contributionComment}
-                                        onChange={(e) => setContributionComment(e.target.value)}
-                                        data-testid="contribution-comment-input"
-                                        placeholder="Min 10 characters... Provide context for this change."
-                                        className={`w-full p-2 rounded bg-gray-950 border text-xs text-white focus:outline-none resize-none h-16 transition-colors ${
-                                            contributionComment.length > 0 && !isCommentValid 
-                                            ? 'border-neon-pink' 
-                                            : 'border-gray-800 focus:border-neon-blue'
-                                        }`}
-                                    />
-                                    <p className="text-[7px] text-gray-600 mt-1 uppercase font-bold italic">
-                                        REQUIRED TO UNLOCK GITHUB SUBMISSION
-                                    </p>
-                                </div>
-
-                                <div 
-                                    data-testid="submission-package"
-                                    className={`p-4 bg-black/40 border border-gray-800 rounded-lg space-y-4 transition-all ${
-                                        isCommentValid ? 'opacity-100' : 'opacity-40 grayscale pointer-events-none'
-                                    }`}
-                                >
-                                    <div className="space-y-1 mb-2">
-                                        <h4 className="text-[10px] font-black uppercase text-neon-blue flex items-center gap-2 tracking-tighter italic">
-                                            <Info size={12} /> Submission Package
-                                        </h4>
-                                        <p className="text-[8px] text-gray-500 leading-tight uppercase font-bold">
-                                            Copy the data and paste it into a new GitHub Issue.
-                                        </p>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <button
-                                            onClick={handleCopy}
-                                            data-testid="copy-contribution-button"
-                                            className={`flex items-center justify-center gap-2 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
-                                                copied 
-                                                ? 'bg-neon-green border-neon-green text-gray-900 shadow-neon' 
-                                                : 'bg-gray-800 border-gray-700 text-white hover:border-neon-green hover:text-neon-green'
-                                            }`}
-                                        >
-                                            {copied ? <Check size={14} /> : <Copy size={14} />}
-                                            {copied ? 'Copied!' : 'Copy to Clipboard'}
-                                        </button>
-                                        <a
-                                            href={isCommentValid ? getGithubIssueUrl(previewMarkdown, `${name.toLowerCase().replace(/\s+/g, '-')}.md`) : '#'}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            data-testid="open-github-button"
-                                            className="flex items-center justify-center gap-2 py-3 bg-neon-blue text-gray-900 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-cyan-400 transition shadow-neon-blue"
-                                        >
-                                            <ExternalLink size={14} />
-                                            Open GitHub
-                                        </a>
-                                    </div>
-
-                                    <div className="relative">
-                                        <div className="absolute top-0 right-0 p-1 text-[8px] uppercase font-black text-gray-600 tracking-widest bg-black/40 rounded-bl">Preview</div>
-                                        <div 
-                                            data-testid="contribution-preview"
-                                            className="font-mono text-[7px] text-gray-600 overflow-y-auto max-h-24 whitespace-pre-wrap select-all bg-black/20 p-2 rounded border border-gray-800/50"
-                                        >
-                                            {previewMarkdown}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
@@ -466,13 +362,11 @@ export const AddMoveForm: React.FC<Props> = ({ onBack, move }) => {
                 </button>
                 <button
                     onClick={handleSubmit}
-                    data-testid="create-local-entry-button"
                     className="px-8 py-2 text-xs bg-neon-green text-gray-900 font-black uppercase tracking-widest rounded-full hover:bg-green-500 transition shadow-neon"
                 >
-                    {move ? 'Update Local Entry' : 'Create Local Entry'}
+                    {action ? 'Update Action' : 'Save Action'}
                 </button>
             </div>
         </div>
     );
 };
-
