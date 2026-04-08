@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useSourceStore } from '../../store/sourceStore';
 import { useMoveStore } from '../../store/moveStore';
 import { useTranslation } from 'react-i18next';
-import { Book, PlusCircle, CheckCircle, Edit, Trash2, X, Plus, Link as LinkIcon, ExternalLink, Settings } from 'lucide-react';
+import { Book, PlusCircle, CheckCircle, Edit, Trash2, X, Plus, Link as LinkIcon, ExternalLink, Settings, Globe, Copy, Check, Info } from 'lucide-react';
 import { ActionIcon } from '../atoms/ActionIcon';
 import { Action, Source } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
+import { sourceToMarkdown, getGithubIssueUrl } from '../../utils/githubContributions';
 
 export const SourceSelector: React.FC = () => {
     const { availableSources, activeSourceId, additionalSourceIds, setActiveSourceId, toggleAdditionalSourceId, addSource, updateSource, removeSource } = useSourceStore();
@@ -18,34 +19,60 @@ export const SourceSelector: React.FC = () => {
     const [mappingAction, setMappingAction] = useState<Action | null>(null);
     const [assigningSourceId, setAssigningSourceId] = useState<string | null>(null);
 
-    const handleAddSource = () => {
+    const [isContributing, setIsContributing] = useState(false);
+    const [contributionComment, setContributionComment] = useState('');
+    const [copied, setCopied] = useState(false);
+
+    const currentSourceData = useMemo((): Source => ({
+        id: editingSourceId || uuidv4(),
+        name: newSource.name || 'Unnamed Source',
+        description: newSource.description || '',
+        link: newSource.link || '',
+        actionIds: newSource.actionIds || []
+    }), [editingSourceId, newSource]);
+
+    const previewMarkdown = useMemo(() => {
+        return sourceToMarkdown(currentSourceData, contributionComment);
+    }, [currentSourceData, contributionComment]);
+
+    const isCommentValid = contributionComment.trim().length >= 10;
+
+    const handleAddSource = async () => {
         if (!newSource.name) return;
-        addSource({
-            id: uuidv4(),
-            name: newSource.name,
-            description: newSource.description || '',
-            link: newSource.link || '',
-            actionIds: newSource.actionIds || []
-        });
-        setNewSource({ name: '', description: '', link: '', actionIds: [] });
-        setIsAddingSource(false);
+        addSource(currentSourceData);
+        resetForm();
     };
 
-    const handleUpdateSource = () => {
+    const handleUpdateSource = async () => {
         if (!editingSourceId || !newSource.name) return;
         updateSource(editingSourceId, {
             name: newSource.name,
             description: newSource.description,
             link: newSource.link
         });
+        resetForm();
+    };
+
+    const resetForm = () => {
         setEditingSourceId(null);
+        setIsAddingSource(false);
         setNewSource({ name: '', description: '', link: '', actionIds: [] });
+        setIsContributing(false);
+        setContributionComment('');
+    };
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(previewMarkdown);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     };
 
     const startEditing = (source: Source) => {
-        setNewSource({ name: source.name, description: source.description, link: source.link });
+        setNewSource({ name: source.name, description: source.description, link: source.link, actionIds: source.actionIds });
         setEditingSourceId(source.id);
         setIsAddingSource(false);
+        setIsContributing(false);
+        setContributionComment('');
     };
 
     const handleUpdateMapping = (actionId: string, sourceId: string, newName: string) => {
@@ -63,7 +90,7 @@ export const SourceSelector: React.FC = () => {
         const updatedActionIds = source.actionIds.indexOf(actionId) !== -1
             ? source.actionIds.filter(id => id !== actionId)
             : [...source.actionIds, actionId];
-        
+
         updateSource(sourceId, { actionIds: updatedActionIds });
     };
 
@@ -92,7 +119,7 @@ export const SourceSelector: React.FC = () => {
                                 </div>
                             </div>
                         ))}
-                        <button 
+                        <button
                             onClick={() => setAssigningSourceId(sourceId)}
                             className="bg-gray-900/30 border border-dashed border-gray-700 rounded p-2 flex flex-col items-center justify-center hover:border-neon-blue transition text-gray-500 hover:text-neon-blue h-24"
                         >
@@ -116,7 +143,7 @@ export const SourceSelector: React.FC = () => {
                                 </div>
                             </div>
                         ))}
-                        <button 
+                        <button
                             onClick={() => setAssigningSourceId(sourceId)}
                             className="bg-gray-900/30 border border-dashed border-gray-700 rounded p-2 flex flex-col items-center justify-center hover:border-neon-blue transition text-gray-500 hover:text-neon-blue h-24"
                         >
@@ -139,12 +166,14 @@ export const SourceSelector: React.FC = () => {
                     </h2>
                     <p className="text-gray-500 text-sm mt-1 uppercase font-bold tracking-widest">Source Mapping & Action Bundling</p>
                 </div>
-                <button 
+                <button
                     onClick={() => {
                         setIsAddingSource(true);
                         setEditingSourceId(null);
                         setNewSource({ name: '', description: '', link: '', actionIds: [] });
+                        setIsContributing(false);
                     }}
+                    data-testid="add-new-source-button"
                     className="flex items-center gap-2 px-6 py-2 bg-neon-blue text-gray-900 rounded-full hover:bg-cyan-400 transition text-xs font-black uppercase tracking-widest shadow-[0_0_15px_rgba(0,243,255,0.3)]"
                 >
                     <Plus size={16} />
@@ -163,10 +192,11 @@ export const SourceSelector: React.FC = () => {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-[10px] uppercase font-black text-gray-500 mb-1 tracking-widest">Source Name</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     placeholder="e.g. Giuseppe Radaelli"
                                     value={newSource.name}
+                                    data-testid="source-name-input"
                                     onChange={e => setNewSource({...newSource, name: e.target.value})}
                                     className="w-full bg-gray-900 border border-gray-700 p-3 rounded text-white focus:border-neon-blue focus:outline-none"
                                 />
@@ -175,41 +205,134 @@ export const SourceSelector: React.FC = () => {
                                 <label className="block text-[10px] uppercase font-black text-gray-500 mb-1 tracking-widest">Document Link (Optional)</label>
                                 <div className="flex gap-2">
                                     <div className="bg-gray-900 border border-gray-700 p-3 rounded-l flex items-center text-gray-500"><LinkIcon size={16} /></div>
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         placeholder="URL to PDF or Wiktenauer"
                                         value={newSource.link}
+                                        data-testid="source-link-input"
                                         onChange={e => setNewSource({...newSource, link: e.target.value})}
                                         className="w-full bg-gray-900 border border-gray-700 p-3 rounded-r text-white focus:border-neon-blue focus:outline-none"
                                     />
                                 </div>
                             </div>
+
+                            <div className="pt-4 border-t border-gray-700 space-y-4">
+                                <h4 className="text-[10px] uppercase font-black text-gray-500 tracking-widest flex items-center gap-2">
+                                    <Globe size={14} className="text-neon-blue" /> Contribution
+                                </h4>
+
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        checked={isContributing}
+                                        data-testid="global-propose-checkbox"
+                                        onChange={(e) => setIsContributing(e.target.checked)}
+                                        className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-neon-blue focus:ring-neon-blue"
+                                    />
+                                    <span className="text-[10px] uppercase font-black text-gray-400 group-hover:text-neon-blue transition">
+                                        Propose to Global Library
+                                    </span>
+                                </label>
+
+                                {isContributing && (
+                                    <div className="pl-7 space-y-4 animate-in slide-in-from-top-2">
+                                        <div className="animate-in fade-in slide-in-from-top-2">
+                                            <label className="block text-[8px] uppercase font-black text-gray-500 mb-1 tracking-widest">
+                                                Why are you adding/changing this source? <span className="text-neon-pink">*</span>
+                                            </label>
+                                            <textarea
+                                                value={contributionComment}
+                                                data-testid="contribution-comment-input"
+                                                onChange={(e) => setContributionComment(e.target.value)}
+                                                placeholder="Min 10 characters... Provide context for this correction."
+                                                className={`w-full p-2 rounded bg-gray-900 border text-xs text-white focus:outline-none resize-none h-16 transition-colors ${
+                                                    contributionComment.length > 0 && !isCommentValid 
+                                                    ? 'border-neon-pink' 
+                                                    : 'border-gray-700 focus:border-neon-blue'
+                                                }`}
+                                            />
+                                            <p className="text-[7px] text-gray-600 mt-1 uppercase font-bold italic">
+                                                REQUIRED TO UNLOCK GITHUB SUBMISSION
+                                            </p>
+                                        </div>
+
+                                        <div 
+                                            data-testid="submission-package"
+                                            className={`p-4 bg-black/40 border border-gray-700 rounded-lg space-y-4 transition-all ${
+                                            isCommentValid ? 'opacity-100' : 'opacity-40 grayscale pointer-events-none'
+                                        }`}>
+                                            <div className="space-y-1 mb-2">
+                                                <h4 className="text-[10px] font-black uppercase text-neon-blue flex items-center gap-2 tracking-tighter italic">
+                                                    <Info size={12} /> Submission Package
+                                                </h4>
+                                                <p className="text-[8px] text-gray-500 leading-tight uppercase font-bold">
+                                                    Copy the data and paste it into a new GitHub Issue.
+                                                </p>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <button
+                                                    onClick={handleCopy}
+                                                    data-testid="copy-contribution-button"
+                                                    className={`flex items-center justify-center gap-2 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
+                                                        copied 
+                                                        ? 'bg-neon-green border-neon-green text-gray-900 shadow-neon' 
+                                                        : 'bg-gray-800 border-gray-700 text-white hover:border-neon-green hover:text-neon-green'
+                                                    }`}
+                                                >
+                                                    {copied ? <Check size={14} /> : <Copy size={14} />}
+                                                    {copied ? 'Copied!' : 'Copy to Clipboard'}
+                                                </button>
+                                                <a
+                                                    href={isCommentValid ? getGithubIssueUrl(previewMarkdown, `source-${newSource.name?.toLowerCase().replace(/\s+/g, '-')}.md`) : '#'}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    data-testid="open-github-button"
+                                                    className="flex items-center justify-center gap-2 py-3 bg-neon-blue text-gray-900 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-cyan-400 transition shadow-neon-blue"
+                                                >
+                                                    <ExternalLink size={14} />
+                                                    Open GitHub
+                                                </a>
+                                            </div>
+
+                                            <div className="relative">
+                                                <div className="absolute top-0 right-0 p-1 text-[8px] uppercase font-black text-gray-600 tracking-widest bg-black/40 rounded-bl">Preview</div>
+                                                <div 
+                                                    data-testid="contribution-preview"
+                                                    className="font-mono text-[7px] text-gray-600 overflow-y-auto max-h-24 whitespace-pre-wrap select-all bg-black/20 p-2 rounded border border-gray-800/50"
+                                                >
+                                                    {previewMarkdown}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         <div>
                             <label className="block text-[10px] uppercase font-black text-gray-500 mb-1 tracking-widest">Historical Context / Description</label>
-                            <textarea 
+                            <textarea
                                 placeholder="Describe the lineage, weapon focus, or system characteristics..."
                                 value={newSource.description}
+                                data-testid="source-description-input"
                                 onChange={e => setNewSource({...newSource, description: e.target.value})}
                                 className="w-full bg-gray-900 border border-gray-700 p-3 rounded text-white h-[108px] focus:border-neon-blue focus:outline-none resize-none"
                             />
                         </div>
                     </div>
                     <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-700">
-                        <button 
-                            onClick={() => {
-                                setIsAddingSource(false);
-                                setEditingSourceId(null);
-                            }} 
+                        <button
+                            onClick={resetForm}
                             className="text-xs uppercase font-black text-gray-500 hover:text-white transition"
                         >
                             Cancel
                         </button>
-                        <button 
-                            onClick={editingSourceId ? handleUpdateSource : handleAddSource} 
+                        <button
+                            onClick={editingSourceId ? handleUpdateSource : handleAddSource}
+                            data-testid="create-local-source-button"
                             className="px-8 py-3 bg-neon-blue text-gray-900 font-black rounded-full uppercase text-xs tracking-widest shadow-neon-blue"
                         >
-                            {editingSourceId ? 'Update Source Entry' : 'Create Source Entry'}
+                            {editingSourceId ? 'Update Local Entry' : 'Create Local Entry'}
                         </button>
                     </div>
                 </div>
@@ -223,6 +346,7 @@ export const SourceSelector: React.FC = () => {
                     return (
                         <div
                             key={source.id}
+                            data-testid={`source-card-${source.id}`}
                             className={`relative p-8 rounded-2xl border-2 transition-all duration-500 ${
                                 isActive
                                     ? 'bg-neon-green/5 border-neon-green shadow-neon'
@@ -244,17 +368,17 @@ export const SourceSelector: React.FC = () => {
                                         {source.description}
                                     </p>
                                     {source.link && (
-                                        <a 
-                                            href={source.link} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer" 
+                                        <a
+                                            href={source.link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
                                             className="mt-3 inline-flex items-center gap-1.5 text-neon-blue text-[10px] font-black uppercase tracking-widest hover:underline"
                                         >
                                             <ExternalLink size={12} /> View Documentation
                                         </a>
                                     )}
                                 </div>
-                                
+
                                 <div className="flex gap-2 shrink-0 bg-gray-900/50 p-2 rounded-full border border-gray-700/50">
                                     <button
                                         onClick={() => setActiveSourceId(source.id)}
@@ -280,14 +404,14 @@ export const SourceSelector: React.FC = () => {
                                         Bundle
                                     </button>
                                     <div className="w-[1px] h-8 bg-gray-700 mx-1" />
-                                    <button 
+                                    <button
                                         onClick={() => startEditing(source)}
                                         className="p-2 text-gray-600 hover:text-neon-blue transition hover:scale-110"
                                         title="Edit Source Details"
                                     >
                                         <Settings size={18} />
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => removeSource(source.id)}
                                         className="p-2 text-gray-600 hover:text-red-500 transition hover:scale-110"
                                     >
@@ -316,7 +440,7 @@ export const SourceSelector: React.FC = () => {
             {/* Modal: Edit Mapping */}
             {mappingAction && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-950/90 backdrop-blur-md animate-in fade-in">
-                    <div className="bg-gray-900 border border-gray-700 rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+                    <div className="bg-gray-900 border border-gray-700 rounded-3xl p-8 max-md w-full shadow-2xl relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-blue via-neon-green to-neon-blue" />
                         <div className="flex justify-between items-start mb-8">
                             <div className="flex items-center gap-5">
@@ -342,7 +466,7 @@ export const SourceSelector: React.FC = () => {
                                             <span className="text-[9px] text-neon-blue font-black uppercase tracking-widest">{s.name}</span>
                                             {s.actionIds.indexOf(mappingAction.id) === -1 && <span className="text-[8px] text-gray-600 font-bold uppercase">Not Assigned</span>}
                                         </div>
-                                        <input 
+                                        <input
                                             type="text"
                                             value={mappingAction.sourceNames[s.id] || ''}
                                             onChange={(e) => handleUpdateMapping(mappingAction.id, s.id, e.target.value)}
@@ -354,7 +478,7 @@ export const SourceSelector: React.FC = () => {
                             </div>
                         </div>
 
-                        <button 
+                        <button
                             onClick={() => setMappingAction(null)}
                             className="w-full py-4 bg-neon-green text-gray-900 font-black uppercase tracking-widest rounded-2xl shadow-neon hover:scale-[1.02] transition-transform"
                         >
@@ -385,7 +509,7 @@ export const SourceSelector: React.FC = () => {
                                     {actions.filter(a => a.type === 'attack').map(a => {
                                         const isAssigned = availableSources.find(s => s.id === assigningSourceId)?.actionIds.indexOf(a.id) !== -1;
                                         return (
-                                            <button 
+                                            <button
                                                 key={a.id}
                                                 onClick={() => handleToggleActionInSource(assigningSourceId, a.id)}
                                                 className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-2 relative ${
@@ -408,7 +532,7 @@ export const SourceSelector: React.FC = () => {
                                     {actions.filter(a => a.type === 'parry').map(a => {
                                         const isAssigned = availableSources.find(s => s.id === assigningSourceId)?.actionIds.indexOf(a.id) !== -1;
                                         return (
-                                            <button 
+                                            <button
                                                 key={a.id}
                                                 onClick={() => handleToggleActionInSource(assigningSourceId, a.id)}
                                                 className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-2 relative ${
@@ -428,7 +552,7 @@ export const SourceSelector: React.FC = () => {
                         </div>
 
                         <div className="mt-8 pt-6 border-t border-gray-800 shrink-0">
-                            <button 
+                            <button
                                 onClick={() => setAssigningSourceId(null)}
                                 className="w-full py-4 bg-neon-blue text-gray-900 font-black uppercase tracking-widest rounded-2xl shadow-neon-blue"
                             >
