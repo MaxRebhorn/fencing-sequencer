@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Beaker } from 'lucide-react';
 import { useMoveStore } from '../store/moveStore';
-import { Move, SequenceNode, FeintBranch, ActiveTarget, ReactionType } from '../types';
+import { Action, SequenceNode, FeintBranch, ActiveTarget, ReactionType } from '../types';
 import { StartPositionsSelect } from './elements/StartPositionsSelect';
 import { BlockingInfoAlert } from './elements/BlockingInfoAlert';
 import { ActorSelector } from './elements/ActorSelector';
 import { SequenceTree } from './elements/Sequencetree';
 import { MoveGrid } from './elements/MoveGrid';
 import { ActionButtons } from './elements/ActionButtons';
-import { SimulationPlaceholder } from './elements/SimulationPlaceholder';
+import { SimulationVisualizer } from './elements/SimulationVisualizer';
 import { useTranslation } from 'react-i18next';
 import * as Logic from '../utils/sequenceLogic';
 
@@ -19,7 +19,7 @@ interface Props {
 }
 
 export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
-    const { moves } = useMoveStore();
+    const { actions } = useMoveStore();
     const { t } = useTranslation();
 
     // ── Persistent state ───────────────────────────────────────────────────────
@@ -28,7 +28,7 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
             const saved = localStorage.getItem('sequence');
             if (saved) {
                 const parsed = JSON.parse(saved);
-                if (parsed.steps) return parsed.steps;
+                if (parsed.steps && parsed.steps.length > 0) return parsed.steps;
             }
         } catch (_) {}
         return [];
@@ -42,6 +42,31 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
     const [autoSwitch, setAutoSwitch] = useState(true);
     const [activeTarget, setActiveTarget] = useState<ActiveTarget>({ type: 'main' });
     const [nextActorHint, setNextActorHint] = useState('');
+    const [activeSimStepId, setActiveSimStepId] = useState<string | undefined>();
+
+    // ── Test Sequence Generator ────────────────────────────────────────────────
+    const loadTestSequence = useCallback(() => {
+        const parry5 = actions.find(a => a.id === 'sabre_parry_5');
+        const cut2 = actions.find(a => a.id === 'sabre_cut_2');
+        
+        if (!parry5 || !cut2) return;
+
+        const testSteps: SequenceNode[] = [
+            { id: 'test-1', move: parry5, actor: 'player' },
+            { id: 'test-2', move: cut2, actor: 'player' },
+            { id: 'test-3', move: parry5, actor: 'opponent' },
+        ];
+
+        setSteps(testSteps);
+        localStorage.setItem('sequence', JSON.stringify({ steps: testSteps, playerStart, opponentStart }));
+    }, [actions, playerStart, opponentStart]);
+
+    // Automatically load test sequence if empty (for testing)
+    useEffect(() => {
+        if (actions.length > 0 && steps.length === 0) {
+            loadTestSequence();
+        }
+    }, [actions, steps.length, loadTestSequence]);
 
     // ── Derived: position map (memoized) ───────────────────────────────────────
     const positionMap = useMemo(
@@ -63,12 +88,12 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
             );
 
         if (isAttackInTempoEmpty) {
-            return Logic.suggestAttacksForAttackInTempo(activeTarget, steps, moves, positionMap, playerStart, opponentStart);
+            return Logic.suggestAttacksForAttackInTempo(activeTarget, steps, actions, positionMap, playerStart, opponentStart);
         } else {
             const ctx = Logic.resolveContextSteps(activeTarget, steps);
-            return Logic.analyzeAndSuggestMoves(ctx, selectedActor, moves, positionMap, playerStart, opponentStart);
+            return Logic.analyzeAndSuggestMoves(ctx, selectedActor, actions, positionMap, playerStart, opponentStart);
         }
-    }, [activeTarget, steps, selectedActor, moves, positionMap, playerStart, opponentStart]);
+    }, [activeTarget, steps, selectedActor, actions, positionMap, playerStart, opponentStart]);
 
     // ── Auto‑switch effect ────────────────────────────────────────────────────
     useEffect(() => {
@@ -88,7 +113,7 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
         const lastStep = ctx[ctx.length - 1];
         if (lastStep.actor === selectedActor || lastStep.move.type !== 'attack') return null;
         const attack = lastStep.move;
-        const blockingParries = moves.filter(
+        const blockingParries = actions.filter(
             (m) => m.type === 'parry' && m.blocks?.includes(attack.id)
         );
         const easiestIds: string[] = attack.easiestParries || [];
@@ -108,7 +133,7 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
     };
 
     // ── Mutations ──────────────────────────────────────────────────────────────
-    const addStep = (move: Move) => {
+    const addStep = (move: Action) => {
         const newNode: SequenceNode = {
             id: Date.now().toString(),
             move,
@@ -182,13 +207,14 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                 'attackInTempo': 'Angriff ins Tempo',
             };
 
-            const stayMove: Move = {
-                id: 'bleiben',
-                name: 'Bleiben',
+            const stayMove: Action = actions.find(a => a.id === 'stay_action') || {
+                id: 'stay_action',
+                sourceId: 'System',
+                sourceNames: { System: 'Stay' },
                 type: 'stay',
                 svgContent:
                     '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2"><circle cx="20" cy="20" r="14"/><line x1="20" y1="12" x2="20" y2="28"/><line x1="12" y1="20" x2="28" y2="20"/></svg>',
-            };
+            } as Action;
 
             const newBranch: FeintBranch = {
                 id: `${feintNodeId}-${reactionType}-${Date.now()}`,
@@ -210,7 +236,7 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                 setActiveTarget({ type: 'branch', feintNodeId, branchId: newBranchId });
             }
         }, 0);
-    }, []);
+    }, [actions]);
 
     const setPositionOverride = (nodeId: string, position: string | undefined) => {
         setSteps((prev) => {
@@ -233,20 +259,34 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
     const blockingInfo = getBlockingParriesInfo();
 
     // ── Available parry names for position picker ──────────────────────────────
-    const parryNames = moves
+    const parryNames = actions
         .filter((m) => m.type === 'parry')
         .map((m) => m.name);
 
     // ── Render ─────────────────────────────────────────────────────────────────
     return (
         <div className="max-w-6xl mx-auto p-6">
-            <button onClick={onBack} className="mb-4 text-gray-400 hover:text-neon-green transition">
-                <ArrowLeft size={24} />
-            </button>
+            <div className="flex items-center justify-between mb-4">
+                <button onClick={onBack} className="text-gray-400 hover:text-neon-green transition">
+                    <ArrowLeft size={24} />
+                </button>
+                <button 
+                    onClick={loadTestSequence}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-yellow-600/20 hover:bg-yellow-600/40 text-yellow-400 border border-yellow-600/50 rounded-lg text-xs transition-all"
+                    title="Reset to Test Sequence"
+                >
+                    <Beaker size={14} />
+                    <span>Test Sequenz laden</span>
+                </button>
+            </div>
 
             <h1 className="text-2xl font-bold mb-6 neon-text">{t('sequence.title')}</h1>
 
-            <SimulationPlaceholder />
+            <SimulationVisualizer 
+                steps={steps} 
+                activeStepId={activeSimStepId}
+                onStepChange={setActiveSimStepId}
+            />
 
             <StartPositionsSelect
                 playerStart={playerStart}
@@ -289,6 +329,7 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                 activeTarget={activeTarget}
                 positionMap={positionMap}
                 availablePositions={parryNames}
+                activeSimStepId={activeSimStepId}
                 onRemoveStep={removeStep}
                 onRemoveStepFromBranch={removeStepFromBranch}
                 onToggleFeint={toggleFeint}
@@ -311,7 +352,7 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                     )}
                 </h2>
                 <MoveGrid
-                    moves={moves}
+                    moves={actions}
                     suggestedMoveIds={suggestedMoveIds}
                     onMoveClick={addStep}
                     getSuggestionRank={getSuggestionRank}

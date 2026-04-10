@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SequenceNode, FeintBranch, ReactionType, ActiveTarget } from '../SequenceBuilder';
-import { Move } from '../../types';
+import { Action } from '../../types';
 import { MainSequenceRow } from './Mainsequencerow';
 import { BranchContainer } from './BranchContainer';
 import { BranchArrows } from './Brancharrows';
@@ -11,13 +11,14 @@ interface Props {
     activeTarget: ActiveTarget;
     positionMap: Map<string, { player: string; opponent: string }>;
     availablePositions: string[];
+    activeSimStepId?: string;
     onRemoveStep: (id: string) => void;
     onRemoveStepFromBranch: (feintNodeId: string, branchId: string, nodeId: string) => void;
     onToggleFeint: (nodeId: string) => void;
     onAddBranch: (feintNodeId: string, reactionType: ReactionType) => void;
     onSelectTarget: (target: ActiveTarget) => void;
     onSetPositionOverride: (nodeId: string, position: string | undefined) => void;
-    isBlock: (prevMove: Move, currentMove: Move) => boolean;
+    isBlock: (prevAction: Action, currentAction: Action) => boolean;
 }
 
 export const SequenceTree: React.FC<Props> = ({
@@ -25,6 +26,7 @@ export const SequenceTree: React.FC<Props> = ({
                                                   activeTarget,
                                                   positionMap,
                                                   availablePositions,
+                                                  activeSimStepId,
                                                   onRemoveStep,
                                                   onRemoveStepFromBranch,
                                                   onToggleFeint,
@@ -112,10 +114,12 @@ export const SequenceTree: React.FC<Props> = ({
                 positionMap={positionMap}
                 availablePositions={availablePositions}
                 activeTarget={activeTarget}
+                activeSimStepId={activeSimStepId}
                 onRemoveStep={onRemoveStep}
                 onToggleFeint={onToggleFeint}
                 onSelectTarget={onSelectTarget}
                 onSetPositionOverride={onSetPositionOverride}
+                onAddBranch={onAddBranch}
                 isBlock={isBlock}
             />
 
@@ -123,6 +127,7 @@ export const SequenceTree: React.FC<Props> = ({
                 steps={steps}
                 activeTarget={activeTarget}
                 availablePositions={availablePositions}
+                activeSimStepId={activeSimStepId}
                 onRemoveStepFromBranch={onRemoveStepFromBranch}
                 onSelectTarget={onSelectTarget}
                 onAddBranch={onAddBranch}

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { ArrowLeft, Save, Trash2, FolderOpen } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { ArrowLeft, Save, Trash2, FolderOpen, Beaker } from 'lucide-react';
 import { useMoveStore } from '../../store/moveStore';
 import { Action, SequenceNode, ActiveTarget, ReactionType } from '../../types';
 import { StartPositionsSelect } from '../molecules/StartPositionsSelect';
@@ -8,7 +8,7 @@ import { ActorSelector } from '../molecules/ActorSelector';
 import { SequenceTree } from './SequenceTree';
 import { MoveGrid } from './MoveGrid';
 import { ActionButtons } from '../molecules/ActionButtons';
-import { SimulationPlaceholder } from '../atoms/SimulationPlaceholder';
+import { SimulationVisualizer } from '../elements/SimulationVisualizer';
 import { useTranslation } from 'react-i18next';
 import * as Logic from '../../utils/sequenceLogic';
 import { useSequenceStore, SavedSequence } from '../../store/sequenceStore';
@@ -26,8 +26,8 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
 
     // ── Persistent state ───────────────────────────────────────────────────────
     const [steps, setSteps] = useState<SequenceNode[]>([]);
-    const [playerStart, setPlayerStart] = useState('tierce'); // Default to generic ID
-    const [opponentStart, setOpponentStart] = useState('tierce');
+    const [playerStart, setPlayerStart] = useState('sabre_parry_3');
+    const [opponentStart, setOpponentStart] = useState('sabre_parry_3');
     const [currentSequenceId, setCurrentSequenceId] = useState<string | null>(null);
     const [sequenceName, setSequenceName] = useState('');
 
@@ -38,6 +38,28 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
     const [nextActorHint, setNextActorHint] = useState('');
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [showLoadDialog, setShowLoadDialog] = useState(false);
+    const [activeSimStepId, setActiveSimStepId] = useState<string | undefined>();
+    const [isSimPlaying, setIsSimPlaying] = useState(false);
+
+    // ── Refs ──────────────────────────────────────────────────────────────────
+    const simRef = useRef<HTMLDivElement>(null);
+
+    // ── Test Sequence Generator ────────────────────────────────────────────────
+    const loadTestSequence = useCallback(() => {
+        const parry5 = actions.find(a => a.id === 'sabre_parry_5');
+        const cut2 = actions.find(a => a.id === 'sabre_cut_2');
+        
+        if (!parry5 || !cut2) return;
+
+        const testSteps: SequenceNode[] = [
+            { id: 'test-1', move: parry5, actor: 'player' },
+            { id: 'test-2', move: cut2, actor: 'player' },
+            { id: 'test-3', move: parry5, actor: 'opponent' },
+        ];
+
+        setSteps(testSteps);
+        setSequenceName('DEBUG: Simulation Test');
+    }, [actions]);
 
     // ── Derived: position map (memoized) ───────────────────────────────────────
     const positionMap = useMemo(
@@ -62,7 +84,6 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
             return Logic.suggestAttacksForAttackInTempo(activeTarget, steps, actions, positionMap, playerStart, opponentStart);
         } else {
             const ctx = Logic.resolveContextSteps(activeTarget, steps);
-            // This now triggers whenever steps, playerStart, or opponentStart change
             return Logic.analyzeAndSuggestMoves(ctx, selectedActor, actions, positionMap, playerStart, opponentStart);
         }
     }, [activeTarget, steps, selectedActor, actions, positionMap, playerStart, opponentStart]);
@@ -245,8 +266,14 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
         setActiveTarget({ type: 'main' });
     };
 
-    const handleSimulate = () => {
-        console.log('Simulate sequence (tree):', steps);
+    const handleSimulateAction = () => {
+        if (steps.length === 0) return;
+        
+        // Scroll to simulation visualizer
+        simRef.current?.scrollIntoView({ behavior: 'smooth' });
+        
+        // Start simulation
+        setIsSimPlaying(true);
     };
 
     const blockingInfo = getBlockingParriesInfo();
@@ -274,6 +301,13 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                 
                 <div className="flex gap-2">
                     <button 
+                        onClick={loadTestSequence}
+                        className="flex items-center gap-2 px-3 py-2 bg-yellow-600/10 border border-yellow-600/30 rounded-full text-[10px] font-black uppercase tracking-widest text-yellow-500 hover:bg-yellow-600/20 transition"
+                    >
+                        <Beaker size={14} />
+                        Test Sequenz
+                    </button>
+                    <button 
                         onClick={handleNewSequence}
                         className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white hover:border-gray-500 transition"
                     >
@@ -289,7 +323,16 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                 </div>
             </div>
 
-            <SimulationPlaceholder />
+            <SimulationVisualizer 
+                ref={simRef}
+                steps={steps} 
+                activeStepId={activeSimStepId}
+                onStepChange={setActiveSimStepId}
+                playerStart={playerStart}
+                opponentStart={opponentStart}
+                isExternalPlaying={isSimPlaying}
+                onTogglePlay={setIsSimPlaying}
+            />
 
             <StartPositionsSelect
                 playerStart={playerStart}
@@ -332,6 +375,7 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                 activeTarget={activeTarget}
                 positionMap={positionMap}
                 availablePositions={parryNames}
+                activeSimStepId={activeSimStepId}
                 onRemoveStep={removeStep}
                 onRemoveStepFromBranch={removeStepFromBranch}
                 onToggleFeint={toggleFeint}
@@ -361,7 +405,7 @@ export const SequenceBuilder: React.FC<Props> = ({ onBack }) => {
                 />
             </div>
 
-            <ActionButtons onSave={handleSave} onSimulate={handleSimulate} />
+            <ActionButtons onSave={handleSave} onSimulate={handleSimulateAction} />
 
             {/* Modal: Save Sequence */}
             {showSaveDialog && (

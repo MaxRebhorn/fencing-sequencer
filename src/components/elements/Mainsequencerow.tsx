@@ -8,6 +8,7 @@ interface Props {
     positionMap: Map<string, { player: string; opponent: string }>;
     availablePositions: string[];
     activeTarget: ActiveTarget;
+    activeSimStepId?: string;
     onRemoveStep: (id: string) => void;
     onToggleFeint: (nodeId: string) => void;
     onSelectTarget: (target: ActiveTarget) => void;
@@ -21,6 +22,7 @@ export const MainSequenceRow: React.FC<Props> = ({
                                                      positionMap,
                                                      availablePositions,
                                                      activeTarget,
+                                                     activeSimStepId,
                                                      onRemoveStep,
                                                      onToggleFeint,
                                                      onSelectTarget,
@@ -38,6 +40,7 @@ export const MainSequenceRow: React.FC<Props> = ({
                 const positions = positionMap.get(step.id);
                 const isActiveTar = activeTarget.type === 'main';
                 const existingBranchTypes = (step.branches || []).map(b => b.reactionType);
+                const isSimActive = activeSimStepId === step.id;
 
                 return (
                     <div
@@ -53,6 +56,7 @@ export const MainSequenceRow: React.FC<Props> = ({
                             availablePositions={availablePositions}
                             showFeintButton={true}
                             isActive={isActiveTar}
+                            isSimActive={isSimActive}
                             onRemove={() => onRemoveStep(step.id)}
                             onToggleFeint={() => onToggleFeint(step.id)}
                             onSetPositionOverride={(pos) => onSetPositionOverride(step.id, pos)}
@@ -69,7 +73,7 @@ export const MainSequenceRow: React.FC<Props> = ({
                         )}
 
                         {/* Phase label */}
-                        <div className="mt-2 text-[9px] uppercase tracking-widest text-slate-600 font-bold">
+                        <div className={`mt-2 text-[9px] uppercase tracking-widest font-bold transition-colors ${isSimActive ? 'text-yellow-500' : 'text-slate-600'}`}>
                            Phase {i + 1}
                         </div>
                     </div>

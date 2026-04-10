@@ -14,6 +14,8 @@ export interface Action {
     slowestParries?: string[];
     easiestAttacks?: string[];
     isLongGuard?: boolean;
+    povImage?: string; // Path to POV image
+    opponentImage?: string; // Path to opponent image
 }
 
 // New Source interface
@@ -34,6 +36,9 @@ export interface SequenceNode {
     isFeint?: boolean;
     positionOverride?: string;
     branches?: FeintBranch[];
+    // Debug/Concept images (Base64 or blob URLs)
+    debugPovImage?: string;
+    debugOpponentImage?: string;
 }
 
 export interface FeintBranch {

@@ -14,6 +14,7 @@ interface Props {
     availablePositions: string[];
     showFeintButton?: boolean;
     isActive?: boolean;
+    isSimActive?: boolean;
     onRemove: () => void;
     onToggleFeint?: () => void;
     onSetPositionOverride?: (pos: string | undefined) => void;
@@ -29,6 +30,7 @@ export const ActionCard: React.FC<Props> = ({
                                               availablePositions,
                                               showFeintButton,
                                               isActive,
+                                              isSimActive,
                                               onRemove,
                                               onToggleFeint,
                                               onSetPositionOverride,
@@ -73,15 +75,17 @@ export const ActionCard: React.FC<Props> = ({
                 onClick={onClick}
                 className={`
                     relative w-44 p-3 rounded-lg border transition-all duration-300 cursor-pointer overflow-hidden
-                    ${step.actor === 'player'
-                    ? isActive
-                        ? 'bg-blue-900/50 border-blue-400 shadow-lg shadow-blue-500/20'
-                        : 'bg-blue-900/30 border-blue-500'
-                    : isActive
-                        ? 'bg-red-900/50 border-red-400 shadow-lg shadow-red-500/20'
-                        : 'bg-red-900/30 border-red-500'
-                } ${step.isFeint ? 'ring-2 ring-cyan-400/50' : ''}
-                group
+                    ${isSimActive 
+                        ? 'bg-yellow-900/40 border-yellow-500 shadow-lg shadow-yellow-500/20 ring-2 ring-yellow-500/50' 
+                        : step.actor === 'player'
+                            ? isActive
+                                ? 'bg-blue-900/50 border-blue-400 shadow-lg shadow-blue-500/20'
+                                : 'bg-blue-900/30 border-blue-500'
+                            : isActive
+                                ? 'bg-red-900/50 border-red-400 shadow-lg shadow-red-500/20'
+                                : 'bg-red-900/30 border-red-500'
+                    } ${step.isFeint && !isSimActive ? 'ring-2 ring-cyan-400/50' : ''}
+                    group
                 `}
             >
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />

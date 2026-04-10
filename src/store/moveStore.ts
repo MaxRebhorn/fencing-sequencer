@@ -44,13 +44,12 @@ const initialActions: Action[] = [
             Radaelli: 'Direct cut to head (right)',
             Barbasetti: 'Cut to head (right)',
             Hutton: 'Downward diagonal right → left',
-            Meyer: 'Wrath Cut (Zornhau) - right side'  // ADD THIS
+            Meyer: 'Wrath Cut (Zornhau) - right side'
         },
-        type: 'attack', svgContent: cutSymbols.cut1, name: 'Cut 1 (Diagonal Outside)',
+        type: 'attack', svgContent: cutSymbols.cut1,
+        name: 'Cut 1 (Diagonal Outside)',
         description: 'Downward diagonal from the outside (high) aimed at the cheek.'
     },
-
-// Update sabre_cut_2 - Add Meyer: Wrath Cut (left side)
     {
         id: 'sabre_cut_2', sourceId: 'System',
         sourceNames: {
@@ -60,13 +59,13 @@ const initialActions: Action[] = [
             Radaelli: 'Direct cut to head (left)',
             Barbasetti: 'Cut to head (left)',
             Hutton: 'Downward diagonal left → right',
-            Meyer: 'Wrath Cut (Zornhau) - left side'  // ADD THIS
+            Meyer: 'Wrath Cut (Zornhau) - left side'
         },
-        type: 'attack', svgContent: cutSymbols.cut2, name: 'Cut 2 (Diagonal Inside)',
+        type: 'attack', svgContent: cutSymbols.cut2,
+        povImage: '/actions/pov/atack/cut_2.svg',
+        name: 'Cut 2 (Diagonal Inside)',
         description: 'Downward diagonal from the inside (high) aimed at the cheek.'
     },
-
-// Update sabre_cut_3 - Add Meyer: Middle Cut (right to left)
     {
         id: 'sabre_cut_3', sourceId: 'System',
         sourceNames: {
@@ -76,13 +75,12 @@ const initialActions: Action[] = [
             Radaelli: 'Direct cut to flank (right)',
             Barbasetti: 'Cut to flank (right)',
             Hutton: 'Horizontal cut (right → left)',
-            Meyer: 'Middle Cut (Mittelhau) - right to left'  // ADD THIS
+            Meyer: 'Middle Cut (Mittelhau) - right to left'
         },
-        type: 'attack', svgContent: cutSymbols.cut3, name: 'Cut 3 (Horizontal Outside)',
+        type: 'attack', svgContent: cutSymbols.cut3,
+        name: 'Cut 3 (Horizontal Outside)',
         description: 'Horizontal or slightly upward diagonal from the outside aimed at the side.'
     },
-
-// Update sabre_cut_4 - Add Meyer: Middle Cut (left to right)
     {
         id: 'sabre_cut_4', sourceId: 'System',
         sourceNames: {
@@ -92,13 +90,12 @@ const initialActions: Action[] = [
             Radaelli: 'Direct cut to flank (left)',
             Barbasetti: 'Cut to flank (left)',
             Hutton: 'Horizontal cut (left → right)',
-            Meyer: 'Middle Cut (Mittelhau) - left to right'  // ADD THIS
+            Meyer: 'Middle Cut (Mittelhau) - left to right'
         },
-        type: 'attack', svgContent: cutSymbols.cut4, name: 'Cut 4 (Horizontal Inside)',
+        type: 'attack', svgContent: cutSymbols.cut4,
+        name: 'Cut 4 (Horizontal Inside)',
         description: 'Horizontal or slightly upward diagonal from the inside aimed at the side.'
     },
-
-// Update sabre_cut_5 - Add Meyer: High Cut
     {
         id: 'sabre_cut_5', sourceId: 'System',
         sourceNames: {
@@ -107,13 +104,12 @@ const initialActions: Action[] = [
             Roworth: 'Cut 5',
             Barbasetti: 'Cut to face',
             Hutton: 'Downward cut (head)',
-            Meyer: 'High Cut (Oberhau)'  // ADD THIS
+            Meyer: 'High Cut (Oberhau)'
         },
-        type: 'attack', svgContent: cutSymbols.cut5, name: 'Cut 5 (Vertical Down)',
+        type: 'attack', svgContent: cutSymbols.cut5,
+        name: 'Cut 5 (Vertical Down)',
         description: 'Vertical downward cut aimed at the top of the head.'
     },
-
-// Update sabre_cut_6 - Add Meyer: Low Cut (right side / rising outside)
     {
         id: 'sabre_cut_6', sourceId: 'System',
         sourceNames: {
@@ -121,13 +117,12 @@ const initialActions: Action[] = [
             Waite: 'Cut 6',
             Roworth: 'Cut 6 (low outside)',
             Hutton: 'Rising cut (right)',
-            Meyer: 'Low Cut (Unterhau) - right side'  // ADD THIS
+            Meyer: 'Low Cut (Unterhau) - right side'
         },
-        type: 'attack', svgContent: cutSymbols.cut6, name: 'Cut 6 (Rising Outside)',
+        type: 'attack', svgContent: cutSymbols.cut6,
+        name: 'Cut 6 (Rising Outside)',
         description: 'Upward diagonal from the outside.'
     },
-
-// Update sabre_cut_7 - Add Meyer: Low Cut (left side / rising inside)
     {
         id: 'sabre_cut_7', sourceId: 'System',
         sourceNames: {
@@ -135,9 +130,10 @@ const initialActions: Action[] = [
             Waite: 'Cut 7',
             Roworth: 'Cut 7 (low inside)',
             Hutton: 'Rising cut (left)',
-            Meyer: 'Low Cut (Unterhau) - left side'  // ADD THIS
+            Meyer: 'Low Cut (Unterhau) - left side'
         },
-        type: 'attack', svgContent: cutSymbols.cut7, name: 'Cut 7 (Rising Inside)',
+        type: 'attack', svgContent: cutSymbols.cut7,
+        name: 'Cut 7 (Rising Inside)',
         description: 'Upward diagonal from the inside.'
     },
     {
@@ -179,7 +175,10 @@ const initialActions: Action[] = [
     {
         id: 'sabre_parry_5', sourceId: 'System',
         sourceNames: { Angelo: 'Quinte', Waite: 'Quinte', Radaelli: 'Quinta', Barbasetti: 'Quinta', Hutton: 'Head parry' },
-        type: 'parry', svgContent: parrySymbols.quinte, blocks: ['sabre_cut_5'], name: 'Quinte',
+        type: 'parry', svgContent: parrySymbols.quinte, blocks: ['sabre_cut_5'],
+        povImage: '/actions/pov/parry/5_parry.png',
+        opponentImage: '/actions/opponent/parry/parry_5.svg',
+        name: 'Quinte',
         description: 'Fifth parry protecting the head from vertical downward cuts.'
     },
     {

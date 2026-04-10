@@ -10,6 +10,7 @@ interface Props {
     activeTarget: ActiveTarget;
     positionMap: Map<string, { player: string; opponent: string }>;
     availablePositions: string[];
+    activeSimStepId?: string;
     onRemoveStep: (id: string) => void;
     onRemoveStepFromBranch: (feintNodeId: string, branchId: string, nodeId: string) => void;
     onToggleFeint: (nodeId: string) => void;
@@ -24,6 +25,7 @@ export const SequenceTree: React.FC<Props> = ({
                                                   activeTarget,
                                                   positionMap,
                                                   availablePositions,
+                                                  activeSimStepId,
                                                   onRemoveStep,
                                                   onRemoveStepFromBranch,
                                                   onToggleFeint,
@@ -209,6 +211,7 @@ export const SequenceTree: React.FC<Props> = ({
                     positionMap={positionMap}
                     availablePositions={availablePositions}
                     activeTarget={activeTarget}
+                    activeSimStepId={activeSimStepId}
                     onRemoveStep={onRemoveStep}
                     onToggleFeint={onToggleFeint}
                     onSelectTarget={onSelectTarget}
@@ -223,6 +226,7 @@ export const SequenceTree: React.FC<Props> = ({
                             steps={steps}
                             activeTarget={activeTarget}
                             availablePositions={availablePositions}
+                            activeSimStepId={activeSimStepId}
                             onRemoveStepFromBranch={onRemoveStepFromBranch}
                             onSelectTarget={onSelectTarget}
                             onAddBranch={onAddBranch}

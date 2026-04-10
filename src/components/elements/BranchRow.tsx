@@ -8,6 +8,7 @@ interface Props {
     branch: FeintBranch;
     isActiveBranch: boolean;
     availablePositions: string[];
+    activeSimStepId?: string;
     onSelectBranch: () => void;
     onRemoveStep: (nodeId: string) => void;
     isBlock: (prevAction: Action, currentAction: Action) => boolean;
@@ -35,11 +36,11 @@ export const BranchRow: React.FC<Props> = ({
                                                branch,
                                                isActiveBranch,
                                                availablePositions,
+                                               activeSimStepId,
                                                onSelectBranch,
                                                onRemoveStep,
                                                isBlock,
                                            }) => {
-    const { t } = useTranslation();
     const config = BRANCH_CONFIG[branch.reactionType] || BRANCH_CONFIG['no-reaction'];
 
     return (
@@ -69,6 +70,7 @@ export const BranchRow: React.FC<Props> = ({
             <div className="flex flex-nowrap gap-3 items-start overflow-visible">
                 {branch.steps.map((step, idx) => {
                     const prevStep = idx > 0 ? branch.steps[idx - 1] : undefined;
+                    const isSimActive = activeSimStepId === step.id;
 
                     return (
                         <div key={step.id} className="flex items-center gap-3">
@@ -78,11 +80,12 @@ export const BranchRow: React.FC<Props> = ({
                                 availablePositions={availablePositions}
                                 showFeintButton={false}
                                 isActive={false}
+                                isSimActive={isSimActive}
                                 onRemove={() => onRemoveStep(step.id)}
                                 isBlock={isBlock}
                             />
                             {idx < branch.steps.length - 1 && (
-                                <div className="text-slate-600 font-light text-xl select-none">→</div>
+                                <div className={`font-light text-xl select-none transition-colors ${isSimActive ? 'text-yellow-500' : 'text-slate-600'}`}>→</div>
                             )}
                         </div>
                     );
