@@ -91,10 +91,10 @@ const Home: React.FC = () => {
         });
 
         return actions
-            .filter(a => allActionIds.indexOf(a.id) !== -1)
+            .filter(a => allActionIds.indexOf(a.id) !== -1 || a.sourceId === 'Custom')
             .map(a => ({
                 ...a,
-                name: a.sourceNames[activeSourceId] || a.sourceNames[a.sourceId] || a.id
+                name: a.sourceNames[activeSourceId] || a.sourceNames[a.sourceId] || a.name
             }));
     }, [actions, activeSourceId, additionalSourceIds, availableSources]);
 
@@ -130,6 +130,9 @@ const Home: React.FC = () => {
                                     />
                                     <span className="text-sm font-semibold text-center">{action.name}</span>
                                     <span className="text-xs text-gray-400 capitalize">{action.type}</span>
+                                    {action.sourceId === 'Custom' && (
+                                        <span className="text-[10px] text-neon-blue mt-1 uppercase font-bold">Custom</span>
+                                    )}
                                 </div>
                             ))}
                         </div>
