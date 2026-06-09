@@ -3,7 +3,7 @@ import { useMoveStore } from '../store/moveStore';
 import { useSourceStore } from '../store/sourceStore';
 import { Action } from '../types';
 import { v4 as uuidv4 } from 'uuid';
-import { SimpleSVGEditor } from './elements/SimpleSvgEditor';
+import { SimpleSVGEditor } from './atoms/SimpleSvgEditor';
 import { actionToMarkdown, getGithubIssueUrl } from '../utils/githubContributions';
 import { Copy, Check, Info, Globe, ExternalLink } from 'lucide-react';
 

@@ -8,7 +8,7 @@ import { ActorSelector } from '../molecules/ActorSelector';
 import { SequenceTree } from './SequenceTree';
 import { MoveGrid } from './MoveGrid';
 import { ActionButtons } from '../molecules/ActionButtons';
-import { SimulationVisualizer } from '../elements/SimulationVisualizer';
+import { SimulationVisualizer } from './SimulationVisualizer';
 import { useTranslation } from 'react-i18next';
 import * as Logic from '../../utils/sequenceLogic';
 import { useSequenceStore, SavedSequence } from '../../store/sequenceStore';

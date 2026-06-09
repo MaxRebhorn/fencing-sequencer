@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { FeintBranch, Action } from '../../types';
-import { ActionCard } from '../molecules/ActionCard';
+import { ActionCard } from './ActionCard';
 
 interface Props {
     feintNodeId: string;

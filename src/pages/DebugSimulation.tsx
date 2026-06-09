@@ -4,7 +4,7 @@ import { useMoveStore } from '../store/moveStore';
 import { Action, SequenceNode } from '../types';
 import { SequenceTree } from '../components/organisms/SequenceTree';
 import { MoveGrid } from '../components/organisms/MoveGrid';
-import { SimulationVisualizer } from '../components/elements/SimulationVisualizer';
+import { SimulationVisualizer } from '../components/organisms/SimulationVisualizer';
 import * as Logic from '../utils/sequenceLogic';
 
 export const DebugSimulation: React.FC<{ onBack: () => void }> = ({ onBack }) => {

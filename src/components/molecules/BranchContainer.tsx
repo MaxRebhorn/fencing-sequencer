@@ -7,6 +7,7 @@ interface Props {
     activeTarget: ActiveTarget;
     availablePositions: string[];
     activeSimStepId?: string;
+    collapsedNodes?: string[];
     onRemoveStepFromBranch: (feintNodeId: string, branchId: string, nodeId: string) => void;
     onSelectTarget: (target: ActiveTarget) => void;
     onAddBranch: (feintNodeId: string, reactionType: ReactionType) => void;
@@ -18,15 +19,16 @@ export const BranchContainer: React.FC<Props> = ({
                                                      activeTarget,
                                                      availablePositions,
                                                      activeSimStepId,
+                                                     collapsedNodes,
                                                      onRemoveStepFromBranch,
                                                      onSelectTarget,
                                                      onAddBranch,
                                                      isBlock,
                                                  }) => {
-    // Group branches by their parent node
+    // Group branches by their parent node, filtering out collapsed nodes
     const groupedBranches = steps.reduce((acc, step, index) => {
         const hasBranches = step.branches && step.branches.length > 0;
-        if (hasBranches) {
+        if (hasBranches && !collapsedNodes?.includes(step.id)) {
             acc.push({
                 feintNodeId: step.id,
                 branches: step.branches!,
@@ -39,7 +41,7 @@ export const BranchContainer: React.FC<Props> = ({
     if (groupedBranches.length === 0) return null;
 
     // Approximate width of a card (w-44 = 176px) plus gap (gap-4 = 16px)
-    const STEP_WIDTH = 192; 
+    const STEP_WIDTH = 192;
 
     return (
         <div
@@ -48,14 +50,14 @@ export const BranchContainer: React.FC<Props> = ({
         >
             {groupedBranches.map((group) => {
                 return (
-                    <div 
-                        key={group.feintNodeId} 
+                    <div
+                        key={group.feintNodeId}
                         className="flex flex-col gap-2"
                         style={{ marginLeft: `${(group.stepIndex + 1) * STEP_WIDTH}px` }}
                     >
                         {group.branches.map((branch, bIdx) => (
-                            <div 
-                                key={branch.id} 
+                            <div
+                                key={branch.id}
                                 className="relative"
                                 style={{ marginLeft: `${bIdx * 20}px` }}
                             >

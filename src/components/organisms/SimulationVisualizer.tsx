@@ -138,11 +138,11 @@ export const SimulationVisualizer = forwardRef<HTMLDivElement, SimulationVisuali
         <div ref={ref} className="flex flex-col gap-6 bg-slate-900/50 rounded-2xl p-6 border border-slate-800 shadow-2xl mb-10 group scroll-mt-10">
             {/* Display Area */}
             <div className="relative aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center border border-slate-700 shadow-inner group-hover:border-slate-500 transition-colors">
-                
+
                 {/* 0. Background Layer */}
-                <img 
-                    src="/background.avif" 
-                    alt="Background" 
+                <img
+                    src="/background.avif"
+                    alt="Background"
                     className="absolute inset-0 w-full h-full object-cover opacity-40 z-0"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-0 opacity-60" />

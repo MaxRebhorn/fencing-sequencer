@@ -1,6 +1,6 @@
 import React from 'react';
 import { SequenceNode, ActiveTarget, Action, ReactionType } from '../../types';
-import { ActionCard } from '../molecules/ActionCard';
+import { ActionCard } from './ActionCard';
 import { AddBranchButton } from '../atoms/AddBranchButton';
 
 interface Props {
@@ -63,12 +63,12 @@ export const MainSequenceRow: React.FC<Props> = ({
                             isBlock={isBlock}
                             onClick={() => onSelectTarget({ type: 'main' })}
                         />
-                        
+
                         {/* Branch-off UI: Only show if the action is marked as a feint */}
                         {step.isFeint && (
-                            <AddBranchButton 
-                                existingTypes={existingBranchTypes} 
-                                onAdd={(type) => onAddBranch(step.id, type)} 
+                            <AddBranchButton
+                                existingTypes={existingBranchTypes}
+                                onAdd={(type) => onAddBranch(step.id, type)}
                             />
                         )}
 

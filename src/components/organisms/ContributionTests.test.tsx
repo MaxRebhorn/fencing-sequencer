@@ -35,19 +35,19 @@ describe('Contribution Pipeline Tests', () => {
             fireEvent.click(checkbox);
             
             // Should be visible but locked
-            const package = screen.getByTestId('submission-package');
-            expect(package.className).toContain('opacity-40');
-            
+            const submissionPackage = screen.getByTestId('submission-package');
+            expect(submissionPackage.className).toContain('opacity-40');
+
             const commentInput = screen.getByTestId('contribution-comment-input');
-            
+
             // Short comment
             fireEvent.change(commentInput, { target: { value: 'Fix error' } });
-            expect(package.className).toContain('opacity-40');
-            
+            expect(submissionPackage.className).toContain('opacity-40');
+
             // Long enough comment
             fireEvent.change(commentInput, { target: { value: 'Correcting technical data for the parry.' } });
-            expect(package.className).not.toContain('opacity-40');
-            expect(package.className).toContain('opacity-100');
+            expect(submissionPackage.className).not.toContain('opacity-40');
+            expect(submissionPackage.className).toContain('opacity-100');
         });
     });
 
@@ -58,17 +58,17 @@ describe('Contribution Pipeline Tests', () => {
             const addBtn = screen.getByTestId('add-new-source-button');
             fireEvent.click(addBtn);
             
-            const checkbox = screen.getByTestId('global-propose-checkbox');
-            fireEvent.click(checkbox);
-            
-            const commentInput = screen.getByTestId('contribution-comment-input');
-            fireEvent.change(commentInput, { target: { value: 'New historical source for Radaelli system.' } });
-            
-            const package = screen.getByTestId('submission-package');
-            expect(package.className).toContain('opacity-100');
-            
-            const preview = screen.getByTestId('contribution-preview');
-            expect(preview.textContent).toContain('New historical source for Radaelli system.');
+            const checkboxes = screen.getAllByTestId('global-propose-checkbox');
+            fireEvent.click(checkboxes[0]);
+
+            const commentInputs = screen.getAllByTestId('contribution-comment-input');
+            fireEvent.change(commentInputs[0], { target: { value: 'New historical source for Radaelli system.' } });
+
+            const submissionPackages = screen.getAllByTestId('submission-package');
+            expect(submissionPackages[0].className).toContain('opacity-100');
+
+            const previews = screen.getAllByTestId('contribution-preview');
+            expect(previews[0].textContent).toContain('New historical source for Radaelli system.');
         });
     });
 });
