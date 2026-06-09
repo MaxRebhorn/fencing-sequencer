@@ -1,0 +1,33 @@
+<svg viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background for visibility -->
+  <rect width="1920" height="1080" fill="rgba(0,0,0,0.5)" />
+
+  <!-- Boundary Box -->
+  <rect x="2" y="2" width="1916" height="1076" fill="none" stroke="#00ffff" stroke-width="4" stroke-dasharray="20,10" />
+
+  <!-- Center Crosshair -->
+  <line x1="960" y1="0" x2="960" y2="1080" stroke="rgba(0,255,255,0.3)" stroke-width="2" />
+  <line x1="0" y1="540" x2="1920" y2="540" stroke="rgba(0,255,255,0.3)" stroke-width="2" />
+
+  <!-- Rule of Thirds -->
+  <line x1="640" y1="0" x2="640" y2="1080" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+  <line x1="1280" y1="0" x2="1280" y2="1080" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+  <line x1="0" y1="360" x2="1920" y2="360" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+  <line x1="0" y1="720" x2="1920" y2="720" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+
+  <!-- Diagonal Guides -->
+  <line x1="0" y1="0" x2="1920" y2="1080" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+  <line x1="1920" y1="0" x2="0" y2="1080" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+
+  <!-- Labels -->
+  <g font-family="sans-serif" font-weight="bold" fill="#00ffff">
+    <text x="30" y="50" font-size="24">1920x1080 SIMULATION VIEWPORT GUIDE</text>
+    <text x="970" y="530" font-size="14" opacity="0.5">CENTER</text>
+    <text x="30" y="1050" font-size="18" fill="#ff00ff">POV LAYER (FRONT)</text>
+    <text x="1650" y="1050" font-size="18" fill="#00ff00">OPPONENT LAYER (BACK)</text>
+  </g>
+
+  <!-- Ground Plane Reference (estimated) -->
+  <path d="M 0 850 L 1920 850" stroke="#555" stroke-width="2" stroke-dasharray="10,5" />
+  <text x="960" y="840" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle">ESTIMATED GROUND LEVEL</text>
+</svg>

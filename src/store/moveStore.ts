@@ -47,6 +47,7 @@ const initialActions: Action[] = [
             Meyer: 'Wrath Cut (Zornhau) - right side'
         },
         type: 'attack', svgContent: cutSymbols.cut1,
+        povImage: '/actions/pov/attack/cut_1.svg',
         name: 'Cut 1 (Diagonal Outside)',
         description: 'Downward diagonal from the outside (high) aimed at the cheek.'
     },
@@ -62,7 +63,7 @@ const initialActions: Action[] = [
             Meyer: 'Wrath Cut (Zornhau) - left side'
         },
         type: 'attack', svgContent: cutSymbols.cut2,
-        povImage: '/actions/pov/atack/cut_2.svg',
+        povImage: '/actions/pov/attack/cut_2.svg',
         name: 'Cut 2 (Diagonal Inside)',
         description: 'Downward diagonal from the inside (high) aimed at the cheek.'
     },
@@ -151,32 +152,44 @@ const initialActions: Action[] = [
     {
         id: 'sabre_parry_1', sourceId: 'System',
         sourceNames: { Angelo: 'Prime', Waite: 'Prime', Radaelli: 'Prima', Barbasetti: 'Prima', Hutton: 'Prime' },
-        type: 'parry', svgContent: parrySymbols.prime, blocks: ['sabre_cut_3', 'sabre_cut_7'], name: 'Prime',
+        type: 'parry', svgContent: parrySymbols.prime, blocks: ['sabre_cut_3', 'sabre_cut_7'], 
+        povImage: '/actions/pov/parry/parry_1.svg',
+        opponentImage: '/actions/opponent/parry/parry_1.svg',
+        name: 'Prime',
         description: 'First parry protecting the low inside line.'
     },
     {
         id: 'sabre_parry_2', sourceId: 'System',
         sourceNames: { Angelo: 'Second', Waite: 'Second', Radaelli: 'Seconda', Barbasetti: 'Seconda', Hutton: 'Second' },
-        type: 'parry', svgContent: parrySymbols.seconde, blocks: ['sabre_cut_4', 'sabre_cut_6'], name: 'Second',
+        type: 'parry', svgContent: parrySymbols.seconde, blocks: ['sabre_cut_4', 'sabre_cut_6'], 
+        povImage: '/actions/pov/parry/parry_2.svg',
+        opponentImage: '/actions/opponent/parry/parry_2.svg',
+        name: 'Second',
         description: 'Second parry protecting the low outside line.'
     },
     {
         id: 'sabre_parry_3', sourceId: 'System',
         sourceNames: { Angelo: 'Tierce', Waite: 'Tierce', Radaelli: 'Terza', Barbasetti: 'Terza', Hutton: 'Tierce', Roworth: 'Outside guard' },
-        type: 'parry', svgContent: parrySymbols.tierce, blocks: ['sabre_cut_1', 'sabre_cut_3'], name: 'Tierce',
+        type: 'parry', svgContent: parrySymbols.tierce, blocks: ['sabre_cut_1', 'sabre_cut_3'], 
+        povImage: '/actions/pov/parry/parry_3.svg',
+        opponentImage: '/actions/opponent/parry/parry_3.svg',
+        name: 'Tierce',
         description: 'Third parry protecting the outside line (mid/high).'
     },
     {
         id: 'sabre_parry_4', sourceId: 'System',
         sourceNames: { Angelo: 'Quarte', Waite: 'Quarte', Radaelli: 'Quarta', Barbasetti: 'Quarta', Hutton: 'Quarte', Roworth: 'Inside guard' },
-        type: 'parry', svgContent: parrySymbols.quarte, blocks: ['sabre_cut_2', 'sabre_cut_4'], name: 'Quarte',
+        type: 'parry', svgContent: parrySymbols.quarte, blocks: ['sabre_cut_2', 'sabre_cut_4'], 
+        povImage: '/actions/pov/parry/parry_4.svg',
+        opponentImage: '/actions/opponent/parry/parry_4.svg',
+        name: 'Quarte',
         description: 'Fourth parry protecting the inside line (mid/high).'
     },
     {
         id: 'sabre_parry_5', sourceId: 'System',
         sourceNames: { Angelo: 'Quinte', Waite: 'Quinte', Radaelli: 'Quinta', Barbasetti: 'Quinta', Hutton: 'Head parry' },
         type: 'parry', svgContent: parrySymbols.quinte, blocks: ['sabre_cut_5'],
-        povImage: '/actions/pov/parry/5_parry.png',
+        povImage: '/actions/pov/parry/parry_5.svg',
         opponentImage: '/actions/opponent/parry/parry_5.svg',
         name: 'Quinte',
         description: 'Fifth parry protecting the head from vertical downward cuts.'
@@ -184,19 +197,25 @@ const initialActions: Action[] = [
     {
         id: 'sabre_parry_6', sourceId: 'System',
         sourceNames: { Angelo: 'Sixte', Waite: 'Sixte', Radaelli: 'Sesta', Barbasetti: 'Sesta' },
-        type: 'parry', svgContent: parrySymbols.sixte, blocks: ['sabre_cut_1'], name: 'Sixte',
+        type: 'parry', svgContent: parrySymbols.sixte, blocks: ['sabre_cut_1'], 
+        povImage: '/actions/pov/parry/parry_6.svg',
+        name: 'Sixte',
         description: 'Sixth parry protecting the high inside line.'
     },
     {
         id: 'sabre_parry_7', sourceId: 'System',
         sourceNames: { Radaelli: 'Settima', Barbasetti: 'Settima' },
-        type: 'parry', svgContent: parrySymbols.septime, blocks: ['sabre_cut_5', 'sabre_cut_7'], name: 'Settima',
+        type: 'parry', svgContent: parrySymbols.septime, blocks: ['sabre_cut_5', 'sabre_cut_7'], 
+        povImage: '/actions/pov/parry/parry_7.svg',
+        name: 'Settima',
         description: 'Seventh parry, often a hanging or situational defense.'
     },
     {
         id: 'sabre_hanging_guard', sourceId: 'Roworth',
         sourceNames: { Roworth: 'Hanging guard', Hutton: 'Hanging guard' },
-        type: 'parry', svgContent: parrySymbols.hanging, blocks: ['sabre_cut_5'], name: 'Hanging Guard',
+        type: 'parry', svgContent: parrySymbols.hanging, blocks: ['sabre_cut_5'], 
+        povImage: '/actions/pov/parry/parry_hanging.svg',
+        name: 'Hanging Guard',
         description: 'A diagonal protective guard that covers the head and upper body.'
     },
     {

@@ -51,10 +51,15 @@ export const SimulationVisualizer = forwardRef<HTMLDivElement, SimulationVisuali
         return flattenedSteps.findIndex(s => s.id === activeStepId);
     }, [activeStepId, flattenedSteps]);
 
+    // Helper function to resolve latest action from store by ID or Name
+    const getAction = (idOrName: string) => {
+        return actions.find(a => a.id === idOrName || a.name === idOrName);
+    };
+
     // Berechnet den Zustand beider Fechter für den aktuellen Index
     const fencerState = useMemo(() => {
-        const pStart = actions.find(a => a.id === playerStart || a.name === playerStart);
-        const oStart = actions.find(a => a.id === opponentStart || a.name === opponentStart);
+        const pStart = getAction(playerStart);
+        const oStart = getAction(opponentStart);
 
         if (currentIndex === -1 || flattenedSteps.length === 0) {
             return { player: pStart, opponent: oStart };
@@ -64,10 +69,12 @@ export const SimulationVisualizer = forwardRef<HTMLDivElement, SimulationVisuali
         if (singleImageMode) {
             const currentStep = flattenedSteps[currentIndex];
             if (!currentStep) return { player: pStart, opponent: oStart };
+            // We use the ID from the step to find the latest Action object from the store
+            const latestMove = getAction(currentStep.move.id);
             if (currentStep.actor === 'player') {
-                return { player: currentStep.move, opponent: null };
+                return { player: latestMove, opponent: null };
             } else {
-                return { player: null, opponent: currentStep.move };
+                return { player: null, opponent: latestMove };
             }
         }
 
@@ -77,8 +84,9 @@ export const SimulationVisualizer = forwardRef<HTMLDivElement, SimulationVisuali
 
         for (let i = 0; i <= currentIndex; i++) {
             const step = flattenedSteps[i];
-            if (step.actor === 'player') lastPlayerAction = step.move;
-            else lastOpponentAction = step.move;
+            const latestMove = getAction(step.move.id);
+            if (step.actor === 'player') lastPlayerAction = latestMove;
+            else lastOpponentAction = latestMove;
         }
 
         return {
@@ -130,6 +138,14 @@ export const SimulationVisualizer = forwardRef<HTMLDivElement, SimulationVisuali
         <div ref={ref} className="flex flex-col gap-6 bg-slate-900/50 rounded-2xl p-6 border border-slate-800 shadow-2xl mb-10 group scroll-mt-10">
             {/* Display Area */}
             <div className="relative aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center border border-slate-700 shadow-inner group-hover:border-slate-500 transition-colors">
+                
+                {/* 0. Background Layer */}
+                <img 
+                    src="/background.avif" 
+                    alt="Background" 
+                    className="absolute inset-0 w-full h-full object-cover opacity-40 z-0"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-0 opacity-60" />
 
                 {/* 1. Base Layer: Opponent */}
                 {fencerState.opponent?.opponentImage ? (

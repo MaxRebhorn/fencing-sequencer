@@ -1,26 +1,17 @@
-<svg width="300" height="220" viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">
-
-    <!-- POV: keine Figur, nur eigene Arme + Säbel -->
-
-    <!-- Schulterpunkt (Referenz im Bildzentrum unten) -->
-    <circle cx="150" cy="200" r="2" fill="black"/>
-
-    <!-- rechter Oberarm (aus POV Brust nach oben links geführt) -->
-    <line x1="150" y1="200" x2="120" y2="150" stroke="black" stroke-width="4"/>
-
-    <!-- rechter Unterarm (weiter hochgeladen für Cut 2 Start) -->
-    <line x1="120" y1="150" x2="100" y2="90" stroke="black" stroke-width="4"/>
-
-    <!-- Handgelenk -->
-    <circle cx="100" cy="90" r="4" fill="none" stroke="black" stroke-width="2"/>
-
-    <!-- Säbelkorb -->
-    <circle cx="100" cy="90" r="6" fill="none" stroke="black" stroke-width="2"/>
-
-    <!-- Säbelklinge (Start Cut 2: links oben → rechts unten, noch am Anfang der Bewegung) -->
-    <line x1="100" y1="90" x2="155" y2="125" stroke="black" stroke-width="4"/>
-
-    <!-- leichte Orientierungslinie (Schwungachse, optional) -->
-    <line x1="85" y1="70" x2="170" y2="140" stroke="none"/>
-
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 1920 1080" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <g id="Cut-2" serif:id="Cut 2" transform="matrix(-1.40228,0.0662444,0.0662444,1.40228,1513.45,-184.917)">
+        <g id="Sabre" transform="matrix(1,2.77556e-17,-2.77556e-17,1,13.1054,134.861)">
+            <path id="Sabre-Basket" serif:id="Sabre Basket" d="M570.413,599.755C554.921,616.127 540.692,612.66 529.357,588.841C516.023,556.584 511.677,512.664 524.68,436.05C539.591,328.668 674.34,369.68 656.683,440.208L639.533,465.673C611.524,500.295 599.603,539.088 609.91,583.644L602.635,610.149L570.413,599.755Z" style="fill:rgb(18,24,38);stroke:white;stroke-width:0.37px;"/>
+            <path id="Sabre-Hilt" serif:id="Sabre Hilt" d="M575.107,414.231C580.934,474.718 578.981,534.426 570.95,593.527L564.713,612.756C570.146,623.104 580.588,625.102 594.336,621.591L602.651,601.842C599.624,543.954 600.134,483.034 606.809,416.83C596.94,416.662 586.362,415.785 575.107,414.231Z" style="fill:rgb(96,107,117);"/>
+            <g transform="matrix(-0.998886,0.0471878,0.0471878,0.998886,855.449,-112.062)">
+                <path d="M257.138,533.65C254.777,566.121 250.602,592.242 245.967,616.754C249.228,631.241 259.731,648.947 273.214,667.978L367.184,668.663C360.567,663.128 355.209,657.594 353.135,652.059L359.521,617.574C356.967,604.235 354.412,591.157 351.858,586.07C355.104,580.908 353.295,574.061 342.917,564.357C345.112,554.72 340.241,548.11 329.72,543.922C335.6,527.243 330.651,519.588 309.284,525.615C295.439,531.815 285.949,538.886 281.186,546.902L276.077,529.447C264.725,518.251 259.406,522.136 257.138,533.65Z" style="fill:rgb(179,179,179);stroke:white;stroke-width:0.37px;"/>
+            </g>
+            <path id="Sabre-Blade" serif:id="Sabre Blade" d="M631.492,39.156C576.393,162.368 555.097,285.009 566.251,371.49C586.421,364.038 606.129,363.538 625.191,372.718C604.5,269.792 612.337,156.08 659.277,46.503C654.897,27.781 645.85,24.617 631.492,39.156Z" style="fill:rgb(18,24,38);"/>
+        </g>
+        <g id="Weapon-Arm" serif:id="Weapon Arm" transform="matrix(0.491058,0.871127,-0.871127,0.491058,746.03,-131.325)">
+            <path d="M668.733,513.504C701.417,551.775 858.734,789.608 913.106,817.034L722.559,820.337C721.341,807.794 632.32,607.411 626.669,595.753C637.164,574.891 657.842,534.163 668.733,513.504Z" style="fill:rgb(179,179,179);stroke:white;stroke-width:0.37px;"/>
+        </g>
+    </g>
 </svg>
